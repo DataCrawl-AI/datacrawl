@@ -20,18 +20,9 @@ import json
 import re
 import urllib.parse
 import validators
+from bcolors import bcolors
 
-
-class bcolors:          # for colord output, looks pretty.
-	HEADER = '\033[95m'
-	OKBLUE = '\033[94m'
-	OKGREEN = '\033[92m'
-	WARNING = '\033[93m'
-	FAIL = '\033[91m'
-	ENDC = '\033[0m'
-	BOLD = '\033[1m'
-	UNDERLINE = '\033[4m'
-
+_print = bcolors()
 
 class Spider:
 
@@ -39,6 +30,7 @@ class Spider:
 		self.root_url = root_url
 		self.crawl_result = {} # a dictionary to store the crawl output as key, val pairs.
 		self.crawl_set = set()
+		self.bucket = []
 		self.MAX_CRAWL = max_links
 		self.link_count = 0
 		self.default_scheme = 'http://'
@@ -52,7 +44,7 @@ class Spider:
 			fp = urllib.request.urlopen(url)
 			data = fp.read()
 		except Exception:
-			print(bcolors.FAIL + "Unable to fetch url:" + bcolors.ENDC, url)
+			_print.error("Unable to fetch url:", url)
 			#traceback.print_exc()
 			return 
 		
@@ -100,14 +92,14 @@ class Spider:
 	def _crawl(self, url):
 
 		if not self._isvalidurl(url):	
-			print(bcolors.FAIL + "Invalid url to crawl:" + bcolors.ENDC, url)
+			_print.error("Invalid url to crawl:", url)
 			return
 
 		if url in self.crawl_result.keys():	#checks if the url is already crawled
-			print(bcolors.WARNING + "URL already crawled:" + bcolors.ENDC, url )
+			_print.warning("URL already crawled:", url)
 			return 
 		
-		print(bcolors.OKGREEN + "Crawling:" + bcolors.ENDC, url)
+		_print.succes( "Crawling:", url)
 
 		soup = self.fetch_url(url) 		
 
@@ -123,13 +115,13 @@ class Spider:
 
 		for link in _links:
 			if 'href' not in link.attrs.keys():
-				print(bcolors.FAIL + "No href in link:" + bcolors.ENDC, link)
+				_print.error( "No href in link:" , link)
 				continue
 
 			pretty_url = self._pretty_link(link['href'].lstrip(), url)
 
 			if self._isvalidurl(pretty_url) != True:	#not a vaid url
-				print(bcolors.FAIL + "Invalid url: " + bcolors.ENDC , pretty_url)
+				_print.error("Invalid url: ", pretty_url)
 				continue
 
 			if pretty_url in self.crawl_result[url]['urls']: # link already added
@@ -159,9 +151,9 @@ class Spider:
 		while len(self.crawl_set):
 			if self.link_count >= self.MAX_CRAWL:		#crawled MAX_CRAWL?
 				self.save_results()						
-				print(bcolors.BOLD + 'Exiting....' + bcolors.ENDC)
+				_print.bold('Exiting....')
 				break
-
+			
 			self._crawl(self.crawl_set.pop())			# poping url to crawl from the crawl_set
 	
 
