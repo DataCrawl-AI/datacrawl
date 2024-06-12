@@ -1,5 +1,4 @@
-name: Lint and Test and Publish
-
+name: CI
 on: [push, pull_request]
 
 jobs:
@@ -45,10 +44,10 @@ jobs:
         run: |
           pytest
 
-  deploy:
+  publish:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     environment: publish-pip
     steps:
       - uses: actions/checkout@v4
