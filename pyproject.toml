@@ -1,3 +1,27 @@
+[tool.poetry]
+name = "tiny-web-crawler"
+version = "0.1.5"
+description = "A simple and efficient web crawler in Python."
+authors = ["Indrajith Indraprastham <indr4jith@gmail.com>"]
+license = "GPL-3.0-or-later"
+readme = "README.md"
+homepage = "http://github.com/indrajithi/tiny-web-crawler"
+repository = "http://github.com/indrajithi/tiny-web-crawler"
+documentation = "http://github.com/indrajithi/tiny-web-crawler"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+validators = "^0.28.3"
+beautifulsoup4 = "^4.12.3"
+lxml = "^5.2.2"
+colorama = "^0.4.6"
+requests = "^2.32.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+responses = "^0.13.4"
+pylint = "^2.7"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
