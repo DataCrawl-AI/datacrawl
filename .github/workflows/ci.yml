@@ -1,4 +1,4 @@
-name: Lint and Test
+name: Lint and Test and Publish
 
 on: [push, pull_request]
 
@@ -48,7 +48,8 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push'
+    environment: publish-pip
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
