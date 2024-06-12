@@ -1,13 +1,9 @@
 name: Upload Python Package
 
-# on:
-#   release:
-#     types: [published]
-
 on:
   push:
     branches:
-      - feature/deploy 
+      - main  # Change this to your branch for testing
 
 permissions:
   contents: read
@@ -15,6 +11,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: publish-pip  # Specify the environment here
 
     steps:
     - uses: actions/checkout@v4
@@ -28,8 +25,13 @@ jobs:
         pip install build twine
     - name: Build package
       run: python -m build
+    - name: Debug Secret
+      run: |
+        echo "PYPI_API_TOKEN starts with ${PYPI_API_TOKEN:0:2} and ends with ${PYPI_API_TOKEN: -2}"
+      env:
+        PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@v1.5.1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: python -m twine upload --verbose dist/*
