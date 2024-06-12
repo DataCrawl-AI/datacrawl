@@ -1,12 +1,60 @@
-# A Tiny Web Crawler
-A web crawler written in python.
+# Tiny Web Crawler
 
-# Install Requirements
-`pip install validators beautifulsoup4 lxml`
+A simple and efficient web crawler in Python.
 
-### Python version: Python 3.6.3 :: Anaconda, Inc.
+## Features
 
-# Run
-`python crawler.py`
+- Crawl web pages and extract links
+- Handle relative and absolute URLs
+- Save crawl results to a JSON file
+- Easy to use and extend
 
-Starts crawling from `root_url` until `max_link` urls are crawled. Saves the output to `out.json`.
+## Installation
+
+Install using pip:
+
+```sh
+pip install tiny-web-crawler
+```
+
+## Usage
+
+```python
+from tiny_web_crawler.crawler import Spider
+
+root_url = 'http://example.com'
+max_links = 2
+
+spider = Spider(root_url, max_links)
+spider.start()
+```
+
+
+## Output Format
+
+Crawled output sample for `https://github.com`
+
+```json
+{
+    "http://github.com": {
+        "urls": [
+            "http://github.com/",
+            "https://githubuniverse.com/",
+            ...
+        ],
+    "https://github.com/solutions/ci-cd": {
+        "urls": [
+            "https://github.com/solutions/ci-cd/",
+            "https://githubuniverse.com/",
+            ...
+        ]
+      }
+    }
+}
+```
+
+
+## License
+
+This project is licensed under the GNU GPLv3 License - see the LICENSE file for details.
+

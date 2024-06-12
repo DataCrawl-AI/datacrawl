@@ -10,6 +10,7 @@
 # pip install validators beautifulsoup4 lxml colorama
 
 # Python version: Python 3.6.3 :: Anaconda, Inc.
+
 from __future__ import annotations
 from bs4 import BeautifulSoup
 import requests
