@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import responses
 
-from crawler.crawler import Spider
+from tiny_web_crawler.crawler import Spider
 
 
 def test_is_valid_url() -> None:
