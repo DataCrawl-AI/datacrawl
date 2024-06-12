@@ -63,7 +63,7 @@ def test_save_results() -> None:
 
     with patch("builtins.open", mock_open()) as mocked_file:
         spider.save_results()
-        mocked_file.assert_called_once_with("out.json", "w")
+        mocked_file.assert_called_once_with("out.json", "w", encoding='utf-8')
 
 
 @patch.object(Spider, "crawl")
