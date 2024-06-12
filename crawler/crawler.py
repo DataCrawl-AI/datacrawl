@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 import urllib.parse
 from typing import Dict, List, Optional, Set
@@ -8,13 +9,20 @@ import validators
 from bs4 import BeautifulSoup
 from colorama import Fore, Style, init
 
+# Initialize colorama
 init(autoreset=True)
 
 
-DEFAULT_SCHEME: str = 'http://'
+class SpiderConfig:
+    def __init__(self, root_url: str, max_links: int, save_to_file: Optional[str] = None) -> None:
+        self.root_url: str = root_url
+        self.max_links: int = max_links
+        self.default_scheme: str = 'http://'
+        self.save_to_file: Optional[str] = save_to_file
+        self.scheme: str = self.default_scheme
 
 
-class Spider():
+class Spider:
     """
     A simple web crawler class.
 
@@ -24,10 +32,12 @@ class Spider():
         crawl_result (Dict[str, Dict[str, List[str]]]): The dictionary storing the crawl results.
         crawl_set (Set[str]): A set of URLs to be crawled.
         link_count (int): The current count of crawled links.
+        default_scheme (str): The default URL scheme (e.g., 'http://').
         save_to_file (Optional[str]): The file path to save the crawl results.
+        scheme (str): The current URL scheme being used.
     """
 
-    def __init__(self, root_url: str, max_links: int = 5, save_to_file: Optional[str] = None) -> None:
+    def __init__(self, root_url: str, max_links: int, save_to_file: Optional[str] = None) -> None:
         """
         Initializes the Spider class.
 
@@ -41,8 +51,16 @@ class Spider():
         self.crawl_result: Dict[str, Dict[str, List[str]]] = {}
         self.crawl_set: Set[str] = set()
         self.link_count: int = 0
+        self.default_scheme: str = 'http://'
         self.save_to_file: Optional[str] = save_to_file
-        self.scheme: str = DEFAULT_SCHEME
+        self.scheme: str = self.default_scheme
+
+    @staticmethod
+    def is_valid_url(url: str) -> bool:
+        """
+        Returns True for a valid url, False for an invalid url.
+        """
+        return bool(validators.url(url))
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -52,9 +70,9 @@ class Spider():
             url (str): The URL to fetch and parse.
 
         Returns:
-            Optional[BeautifulSoup]: A BeautifulSoup object if the URL is fetched successfully, None otherwise.
+            Optional[BeautifulSoup]: A BeautifulSoup object if the URL is fetched successfully,
+            None otherwise.
         """
-
         try:
             response = requests.get(url, timeout=10)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
@@ -68,20 +86,10 @@ class Spider():
             print(Fore.RED + f"Timeout error occurred: {timeout_err}")
         except requests.exceptions.RequestException as req_err:
             print(Fore.RED + f"Request error occurred: {req_err}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            # Catch all other exceptions
+            print(Fore.RED + f"An unexpected error occurred: {e}")
         return None
-
-    @staticmethod
-    def is_valid_url(url: str) -> bool:
-        """
-        Checks if the provided URL is valid.
-
-        Args:
-            url (str): The URL to validate.
-
-        Returns:
-            bool: True if the URL is valid, False otherwise.
-        """
-        return bool(validators.url(url))
 
     def save_results(self) -> None:
         """
@@ -109,13 +117,13 @@ class Spider():
             self.scheme = parsed_url.scheme
 
         if not parsed_url.scheme and not parsed_url.netloc:
-            if self.is_valid_url(DEFAULT_SCHEME + parsed_url.path):
-                return DEFAULT_SCHEME + parsed_url.path
+            if self.is_valid_url(self.default_scheme + parsed_url.path):
+                return self.default_scheme + parsed_url.path
 
             if parsed_url.path.startswith('/'):
                 return base_url + parsed_url.path
-
-            return f"{base_url}/{parsed_url.path}"
+            else:
+                return f"{base_url}/{parsed_url.path}"
 
         return f"{self.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
