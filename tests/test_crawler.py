@@ -6,12 +6,12 @@ from crawler.crawler import Spider
 import responses
 
 
-def test_is_valid_url():
+def test_is_valid_url() -> None:
     assert Spider.is_valid_url("http://example.com") is True
     # assert Spider.is_valid_url('invalid') is False
 
 
-def test_format_url():
+def test_format_url() -> None:
     spider = Spider("http://example.com", 10)
     assert spider.format_url(
         "/test", "http://example.com") == "http://example.com/test"
@@ -20,17 +20,18 @@ def test_format_url():
 
 
 @responses.activate
-def test_fetch_url():
+def test_fetch_url() -> None:
     responses.add(responses.GET, 'http://example.com',
                   body="<html><body><a href='http://example.com'>link</a></body></html>", status=200)
     spider = Spider(root_url='http://example.com', max_links=2)
     resp = spider.fetch_url('http://example.com')
 
+    assert resp is not None
     assert resp.text == 'link'
 
 
 @responses.activate
-def test_crawl():
+def test_crawl() -> None:
     # Mock HTTP response
     responses.add(responses.GET, 'http://example.com',
                   body="<html><body><a href='http://example.com/test'>link</a></body></html>",
@@ -46,7 +47,7 @@ def test_crawl():
 
 
 @responses.activate
-def test_save_results():
+def test_save_results() -> None:
     spider = Spider("http://example.com", 10, save_to_file="out.json")
     spider.crawl_result = {
         "http://example.com": {"urls": ["http://example.com/test"]}}
@@ -58,7 +59,7 @@ def test_save_results():
 
 @patch.object(Spider, 'crawl')
 @patch.object(Spider, 'save_results')
-def test_start(mock_save_results, mock_crawl):
+def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
     spider = Spider("http://example.com", 10)
     mock_crawl.side_effect = lambda url: spider.crawl_result.update(
         {url: {'urls': ['http://example.com/test']}})

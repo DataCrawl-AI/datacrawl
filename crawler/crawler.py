@@ -10,14 +10,14 @@
 # pip install validators beautifulsoup4 lxml colorama
 
 # Python version: Python 3.6.3 :: Anaconda, Inc.
-
+from __future__ import annotations
 from bs4 import BeautifulSoup
 import requests
 import json
 import urllib.parse
 import validators
 from colorama import init, Fore, Style
-from typing import Optional, Dict, Set
+from typing import Optional, Set
 
 # Initialize colorama
 init(autoreset=True)
@@ -27,14 +27,14 @@ class Spider:
     def __init__(self, root_url: str, max_links: int, save_to_file: Optional[str] = None) -> None:
         self.root_url: str = root_url
         self.max_links: int = max_links
-        self.crawl_result: Dict[str, Dict[str, list]] = {}
+        self.crawl_result: dict[str, dict[str, list]] = {}
         self.crawl_set: set = set()
         self.link_count: int = 0
         self.default_scheme: str = 'http://'
         self.save_to_file: Optional[str] = save_to_file
         self.scheme: str = self.default_scheme
 
-    def fetch_url(self, url: str) -> Optional(BeautifulSoup):
+    def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
         Reads the content of a url, parses it using BeautifulSoup with lxml parser.
         """
@@ -57,8 +57,9 @@ class Spider:
         """
         Saves results into a json file.
         """
-        with open(self.save_to_file, 'w') as file:
-            json.dump(self.crawl_result, file, indent=4)
+        if self.save_to_file:
+            with open(self.save_to_file, 'w') as file:
+                json.dump(self.crawl_result, file, indent=4)
 
     def format_url(self, url: str, base_url: str) -> str:
         """
@@ -96,7 +97,7 @@ class Spider:
         if not soup:
             return
 
-        links = soup.body.find_all('a', href=True)
+        links = soup.body.find_all('a', href=True) if soup.body else []
         self.crawl_result[url] = {'urls': []}
 
         for link in links:
@@ -116,7 +117,7 @@ class Spider:
             self.link_count += 1
             print(Fore.GREEN + f"Links crawled: {self.link_count}")
 
-    def start(self) -> Dict[str, Dict[str, list]]:
+    def start(self) -> dict[str, dict[str, list]]:
         """
         Start crawling from the root_url. Crawls up to max_links urls.
         After each crawl, urls found are added to the crawl_set,
