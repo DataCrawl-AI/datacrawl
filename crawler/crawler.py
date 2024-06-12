@@ -12,7 +12,7 @@
 # Python version: Python 3.6.3 :: Anaconda, Inc.
 
 from bs4 import BeautifulSoup
-import urllib.request
+import requests
 import json
 import urllib.parse
 import validators
@@ -38,8 +38,8 @@ class Spider:
         Reads the content of a url, parses it using BeautifulSoup with lxml parser.
         """
         try:
-            with urllib.request.urlopen(url) as response:
-                data = response.read()
+            with requests.get(url) as response:
+                data = response.text
             return BeautifulSoup(data, 'lxml')
         except Exception as e:
             print(Fore.RED + f"Unable to fetch url: {url}, Error: {e}")
@@ -50,7 +50,7 @@ class Spider:
         """
         Returns True for a valid url, False for an invalid url.
         """
-        return validators.url(url)
+        return bool(validators.url(url))
 
     def save_results(self):
         """
