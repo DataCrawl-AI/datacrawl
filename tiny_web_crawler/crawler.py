@@ -1,71 +1,106 @@
-# -*- coding: utf-8 -*-
-# filename: crawler.py
-# Author: Indrajith Indraprastham
-# License: GPL v3: http://www.gnu.org/licenses/
-
-# --------------------------------------------------------------------------------
-# README
-# --------------------------------------------------------------------------------
-# Install Requirements
-# pip install validators beautifulsoup4 lxml colorama
-
-# Python version: Python 3.6.3 :: Anaconda, Inc.
-
 from __future__ import annotations
-from bs4 import BeautifulSoup
-import requests
 import json
 import urllib.parse
-import validators
-from colorama import init, Fore, Style
-from typing import Optional, Set
+from typing import Dict, List, Optional, Set
 
-# Initialize colorama
+import requests
+import validators
+from bs4 import BeautifulSoup
+from colorama import Fore, Style, init
+
 init(autoreset=True)
 
 
-class Spider:
-    def __init__(self, root_url: str, max_links: int, save_to_file: Optional[str] = None) -> None:
+DEFAULT_SCHEME: str = 'http://'
+
+
+class Spider():
+    """
+    A simple web crawler class.
+
+    Attributes:
+        root_url (str): The root URL to start crawling from.
+        max_links (int): The maximum number of links to crawl.
+        crawl_result (Dict[str, Dict[str, List[str]]]): The dictionary storing the crawl results.
+        crawl_set (Set[str]): A set of URLs to be crawled.
+        link_count (int): The current count of crawled links.
+        save_to_file (Optional[str]): The file path to save the crawl results.
+    """
+
+    def __init__(self, root_url: str, max_links: int = 5, save_to_file: Optional[str] = None) -> None:
+        """
+        Initializes the Spider class.
+
+        Args:
+            root_url (str): The root URL to start crawling from.
+            max_links (int): The maximum number of links to crawl.
+            save_to_file (Optional[str]): The file to save the crawl results to.
+        """
         self.root_url: str = root_url
         self.max_links: int = max_links
-        self.crawl_result: dict[str, dict[str, list]] = {}
-        self.crawl_set: set = set()
+        self.crawl_result: Dict[str, Dict[str, List[str]]] = {}
+        self.crawl_set: Set[str] = set()
         self.link_count: int = 0
-        self.default_scheme: str = 'http://'
         self.save_to_file: Optional[str] = save_to_file
-        self.scheme: str = self.default_scheme
+        self.scheme: str = DEFAULT_SCHEME
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
-        Reads the content of a url, parses it using BeautifulSoup with lxml parser.
+        Reads the content of a URL and parses it using BeautifulSoup with lxml parser.
+
+        Args:
+            url (str): The URL to fetch and parse.
+
+        Returns:
+            Optional[BeautifulSoup]: A BeautifulSoup object if the URL is fetched successfully, None otherwise.
         """
+
         try:
-            with requests.get(url) as response:
-                data = response.text
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+            data = response.text
             return BeautifulSoup(data, 'lxml')
-        except Exception as e:
-            print(Fore.RED + f"Unable to fetch url: {url}, Error: {e}")
-            return None
+        except requests.exceptions.HTTPError as http_err:
+            print(Fore.RED + f"HTTP error occurred: {http_err}")
+        except requests.exceptions.ConnectionError as conn_err:
+            print(Fore.RED + f"Connection error occurred: {conn_err}")
+        except requests.exceptions.Timeout as timeout_err:
+            print(Fore.RED + f"Timeout error occurred: {timeout_err}")
+        except requests.exceptions.RequestException as req_err:
+            print(Fore.RED + f"Request error occurred: {req_err}")
+        return None
 
     @staticmethod
     def is_valid_url(url: str) -> bool:
         """
-        Returns True for a valid url, False for an invalid url.
+        Checks if the provided URL is valid.
+
+        Args:
+            url (str): The URL to validate.
+
+        Returns:
+            bool: True if the URL is valid, False otherwise.
         """
         return bool(validators.url(url))
 
     def save_results(self) -> None:
         """
-        Saves results into a json file.
+        Saves the crawl results into a JSON file.
         """
         if self.save_to_file:
-            with open(self.save_to_file, 'w') as file:
+            with open(self.save_to_file, 'w', encoding='utf-8') as file:
                 json.dump(self.crawl_result, file, indent=4)
 
     def format_url(self, url: str, base_url: str) -> str:
         """
-        Removes any query, params, tag-id reference in the urls.
-        Adds base_url to url if it is a relative link (link to the same domain).
+        Formats a URL to ensure it is absolute and removes any query parameters or fragments.
+
+        Args:
+            url (str): The URL to format.
+            base_url (str): The base URL to resolve relative URLs.
+
+        Returns:
+            str: The formatted URL.
         """
         parsed_url = urllib.parse.urlparse(url)
         base_url = base_url.rstrip('/')
@@ -74,17 +109,23 @@ class Spider:
             self.scheme = parsed_url.scheme
 
         if not parsed_url.scheme and not parsed_url.netloc:
-            if self.is_valid_url(self.default_scheme + parsed_url.path):
-                return self.default_scheme + parsed_url.path
+            if self.is_valid_url(DEFAULT_SCHEME + parsed_url.path):
+                return DEFAULT_SCHEME + parsed_url.path
 
             if parsed_url.path.startswith('/'):
                 return base_url + parsed_url.path
-            else:
-                return f"{base_url}/{parsed_url.path}"
+
+            return f"{base_url}/{parsed_url.path}"
 
         return f"{self.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
     def crawl(self, url: str) -> None:
+        """
+        Crawls a given URL, extracts links, and adds them to the crawl results.
+
+        Args:
+            url (str): The URL to crawl.
+        """
         if not self.is_valid_url(url):
             print(Fore.RED + f"Invalid url to crawl: {url}")
             return
@@ -98,7 +139,7 @@ class Spider:
         if not soup:
             return
 
-        links = soup.body.find_all('a', href=True) if soup.body else []
+        links = soup.body.find_all('a', href=True)
         self.crawl_result[url] = {'urls': []}
 
         for link in links:
@@ -118,11 +159,12 @@ class Spider:
             self.link_count += 1
             print(Fore.GREEN + f"Links crawled: {self.link_count}")
 
-    def start(self) -> dict[str, dict[str, list]]:
+    def start(self) -> Dict[str, Dict[str, List[str]]]:
         """
-        Start crawling from the root_url. Crawls up to max_links urls.
-        After each crawl, urls found are added to the crawl_set,
-        next url to crawl is taken from this set.
+        Starts the crawling process from the root URL. Crawls up to max_links URLs.
+
+        Returns:
+            Dict[str, Dict[str, List[str]]]: The crawl results.
         """
         self.crawl(self.root_url)
 
@@ -136,6 +178,9 @@ class Spider:
 
 
 def main() -> None:
+    """
+    The main function to initialize and start the crawler.
+    """
     root_url = 'http://github.com'
     max_links = 2
 
