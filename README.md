@@ -40,13 +40,13 @@ Crawled output sample for `https://github.com`
         "urls": [
             "http://github.com/",
             "https://githubuniverse.com/",
-            ...
+            "..."
         ],
     "https://github.com/solutions/ci-cd": {
         "urls": [
             "https://github.com/solutions/ci-cd/",
             "https://githubuniverse.com/",
-            ...
+            "..."
         ]
       }
     }
