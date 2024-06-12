@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   deploy:
+    needs: pylint
     runs-on: ubuntu-latest
     environment: publish-pip  # Specify the environment here
 
