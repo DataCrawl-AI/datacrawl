@@ -1,0 +1,7 @@
+beautifulsoup4==4.12.3
+bs4==0.0.2
+colorama==0.4.6
+crawler @ file:///Users/indrajith/lab/tiny-web-crawler
+lxml==5.2.2
+soupsieve==2.5
+validators==0.28.3
