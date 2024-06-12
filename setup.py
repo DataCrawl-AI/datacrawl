@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="tiny-web-crawler",  # PyPI package name
-    version="0.1.3",
+    version="0.1.4",
     author="Indrajith Indraprastham",
     author_email="indr4jith@gmail.com",
     description="A simple and efficient web crawler in Python.",

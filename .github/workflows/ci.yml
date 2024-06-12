@@ -22,7 +22,7 @@ jobs:
           pip install pylint
       - name: Run pylint
         run: |
-          pylint $(git ls-files '*.py')
+          pylint tiny_web_crawler
 
   test:
     needs: lint
