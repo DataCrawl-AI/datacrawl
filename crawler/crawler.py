@@ -17,23 +17,24 @@ import json
 import urllib.parse
 import validators
 from colorama import init, Fore, Style
+from typing import Optional, Dict, Set
 
 # Initialize colorama
 init(autoreset=True)
 
 
 class Spider:
-    def __init__(self, root_url, max_links, save_to_file=None):
-        self.root_url = root_url
-        self.max_links = max_links
-        self.crawl_result = {}
-        self.crawl_set = set()
-        self.link_count = 0
-        self.default_scheme = 'http://'
-        self.save_to_file = save_to_file
-        self.scheme = self.default_scheme
+    def __init__(self, root_url: str, max_links: int, save_to_file: Optional[str] = None) -> None:
+        self.root_url: str = root_url
+        self.max_links: int = max_links
+        self.crawl_result: Dict[str, Dict[str, list]] = {}
+        self.crawl_set: set = set()
+        self.link_count: int = 0
+        self.default_scheme: str = 'http://'
+        self.save_to_file: Optional[str] = save_to_file
+        self.scheme: str = self.default_scheme
 
-    def fetch_url(self, url):
+    def fetch_url(self, url: str) -> Optional(BeautifulSoup):
         """
         Reads the content of a url, parses it using BeautifulSoup with lxml parser.
         """
@@ -46,20 +47,20 @@ class Spider:
             return None
 
     @staticmethod
-    def is_valid_url(url):
+    def is_valid_url(url: str) -> bool:
         """
         Returns True for a valid url, False for an invalid url.
         """
         return bool(validators.url(url))
 
-    def save_results(self):
+    def save_results(self) -> None:
         """
         Saves results into a json file.
         """
         with open(self.save_to_file, 'w') as file:
             json.dump(self.crawl_result, file, indent=4)
 
-    def format_url(self, url, base_url):
+    def format_url(self, url: str, base_url: str) -> str:
         """
         Removes any query, params, tag-id reference in the urls.
         Adds base_url to url if it is a relative link (link to the same domain).
@@ -81,7 +82,7 @@ class Spider:
 
         return f"{self.scheme}://{parsed_url.netloc}{parsed_url.path}"
 
-    def crawl(self, url):
+    def crawl(self, url: str) -> None:
         if not self.is_valid_url(url):
             print(Fore.RED + f"Invalid url to crawl: {url}")
             return
@@ -115,7 +116,7 @@ class Spider:
             self.link_count += 1
             print(Fore.GREEN + f"Links crawled: {self.link_count}")
 
-    def start(self):
+    def start(self) -> Dict[str, Dict[str, list]]:
         """
         Start crawling from the root_url. Crawls up to max_links urls.
         After each crawl, urls found are added to the crawl_set,
@@ -132,7 +133,7 @@ class Spider:
         return self.crawl_result
 
 
-def main():
+def main() -> None:
     root_url = 'http://github.com'
     max_links = 2
 
