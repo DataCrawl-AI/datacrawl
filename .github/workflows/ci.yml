@@ -17,13 +17,13 @@ jobs:
         run: curl -sSL https://install.python-poetry.org | python3 -
       - name: Install dependencies
         run: |
-          poetry install && mypy --install-types
+          poetry install
       - name: Run linter :pylint
         run: |
           poetry run pylint tiny_web_crawler
       - name: Run mypy :type_checking
         run: |
-          poetry run mypy tiny_web_crawler
+          poetry run mypy --install-types --non-interactive tiny_web_crawler
 
   test:
     needs: lint
