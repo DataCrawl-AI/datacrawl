@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-          run mypy --install-types
+          mypy --install-types
       - name: Run linter :pylint
         run: |
           poetry run pylint tiny_web_crawler
