@@ -1,6 +1,6 @@
 # Tiny Web Crawler
 
-A simple and efficient web crawler in Python.
+A simple and efficient web crawler for Python.
 
 [![CI](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml)
 
