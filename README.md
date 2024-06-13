@@ -6,10 +6,10 @@ A simple and efficient web crawler in Python.
 
 ## Features
 
-- Crawl web pages and extract links starting from a root URL and extract all the links found on each page
+- Crawl web pages and extract links starting from a root URL recursively
 - Handle relative and absolute URLs
-- Save the results of your crawl in a structured JSON format for easy analysis and processing
 - Designed with simplicity in mind, making it easy to use and extend for various web crawling tasks
+- Set concurrent workers and custom delay
 
 ## Installation
 
@@ -27,8 +27,16 @@ from tiny_web_crawler.crawler import Spider
 root_url = 'http://github.com'
 max_links = 2
 
-spider = Spider(root_url, max_links)
-spider.start()
+crawl = Spider(root_url, max_links)
+crawl.start()
+
+
+# Set workers and delay (default: delay is 0.5 sec and verbose is True)
+# If you do not want delay, set delay=0
+
+crawl = Spider(root_url='https://github.com', max_links=5, max_workers=5, delay=1, verbose=False)
+crawl.start()
+
 ```
 
 

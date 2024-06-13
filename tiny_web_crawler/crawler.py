@@ -2,14 +2,15 @@ from __future__ import annotations
 import json
 import urllib.parse
 from typing import Dict, List, Optional, Set
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import time
 import requests
 import validators
 from bs4 import BeautifulSoup
 from colorama import Fore, Style, init
 
 init(autoreset=True)
-
 
 DEFAULT_SCHEME: str = 'http://'
 
@@ -27,7 +28,13 @@ class Spider():
         save_to_file (Optional[str]): The file path to save the crawl results.
     """
 
-    def __init__(self, root_url: str, max_links: int = 5, save_to_file: Optional[str] = None) -> None:
+    def __init__(self,
+                 root_url: str,
+                 max_links: int = 5,
+                 save_to_file: Optional[str] = None,
+                 max_workers: int = 1,
+                 delay: float = 0.5,
+                 verbose: bool = True) -> None:
         """
         Initializes the Spider class.
 
@@ -43,6 +50,9 @@ class Spider():
         self.link_count: int = 0
         self.save_to_file: Optional[str] = save_to_file
         self.scheme: str = DEFAULT_SCHEME
+        self.max_workers: int = max_workers
+        self.delay: float = delay
+        self.verbose: bool = verbose
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -54,7 +64,6 @@ class Spider():
         Returns:
             Optional[BeautifulSoup]: A BeautifulSoup object if the URL is fetched successfully, None otherwise.
         """
-
         try:
             response = requests.get(url, timeout=10)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
@@ -82,6 +91,10 @@ class Spider():
             bool: True if the URL is valid, False otherwise.
         """
         return bool(validators.url(url))
+
+    def verbose_print(self, content: str) -> None:
+        if self.verbose:
+            print(content)
 
     def save_results(self) -> None:
         """
@@ -127,25 +140,25 @@ class Spider():
             url (str): The URL to crawl.
         """
         if not self.is_valid_url(url):
-            print(Fore.RED + f"Invalid url to crawl: {url}")
+            self.verbose_print(Fore.RED + f"Invalid url to crawl: {url}")
             return
 
         if url in self.crawl_result:
-            print(Fore.YELLOW + f"URL already crawled: {url}")
+            self.verbose_print(Fore.YELLOW + f"URL already crawled: {url}")
             return
 
-        print(Fore.GREEN + f"Crawling: {url}")
+        self.verbose_print(Fore.GREEN + f"Crawling: {url}")
         soup = self.fetch_url(url)
         if not soup:
             return
 
-        links = soup.body.find_all('a', href=True)
+        links = soup.body.find_all('a', href=True) if soup.body else []
         self.crawl_result[url] = {'urls': []}
 
         for link in links:
             pretty_url = self.format_url(link['href'].lstrip(), url)
             if not self.is_valid_url(pretty_url):
-                print(Fore.RED + f"Invalid url: {pretty_url}")
+                self.verbose_print(Fore.RED + f"Invalid url: {pretty_url}")
                 continue
 
             if pretty_url in self.crawl_result[url]['urls']:
@@ -153,11 +166,12 @@ class Spider():
 
             self.crawl_result[url]['urls'].append(pretty_url)
             self.crawl_set.add(pretty_url)
-            print(Fore.BLUE + f"Link found: {pretty_url}")
+            self.verbose_print(Fore.BLUE + f"Link found: {pretty_url}")
 
         if self.link_count < self.max_links:
             self.link_count += 1
-            print(Fore.GREEN + f"Links crawled: {self.link_count}")
+            self.verbose_print(
+                Fore.GREEN + f"Links crawled: {self.link_count}")
 
     def start(self) -> Dict[str, Dict[str, List[str]]]:
         """
@@ -166,14 +180,23 @@ class Spider():
         Returns:
             Dict[str, Dict[str, List[str]]]: The crawl results.
         """
-        self.crawl(self.root_url)
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            futures = {executor.submit(self.crawl, self.root_url)}
 
-        while self.crawl_set and self.link_count < self.max_links:
-            self.crawl(self.crawl_set.pop())
+            while self.link_count < self.max_links and futures:
+                for future in as_completed(futures):
+                    futures.remove(future)
+                    if future.exception() is None:
+                        while self.link_count < self.max_links and self.crawl_set:
+                            url = self.crawl_set.pop()
+                            if url not in self.crawl_result:
+                                futures.add(executor.submit(self.crawl, url))
+                                time.sleep(self.delay)
+                                break  # Break to check the next future
 
         if self.save_to_file:
             self.save_results()
-        print(Style.BRIGHT + Fore.MAGENTA + "Exiting....")
+        self.verbose_print(Style.BRIGHT + Fore.MAGENTA + "Exiting....")
         return self.crawl_result
 
 
@@ -181,10 +204,11 @@ def main() -> None:
     """
     The main function to initialize and start the crawler.
     """
-    root_url = 'http://github.com'
-    max_links = 2
+    root_url = 'https://pypi.org/'
+    max_links = 5
 
     crawler = Spider(root_url, max_links, save_to_file='out.json')
+    print(Fore.GREEN + f"Crawling: {root_url}")
     crawler.start()
 
 

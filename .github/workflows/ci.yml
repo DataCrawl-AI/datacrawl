@@ -18,9 +18,12 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - name: Run pylint
+      - name: Run linter :pylint
         run: |
           poetry run pylint tiny_web_crawler
+      - name: Run mypy :type_checking
+        run: |
+          poetry run mypy --install-types --non-interactive tiny_web_crawler
 
   test:
     needs: lint
