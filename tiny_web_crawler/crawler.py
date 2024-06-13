@@ -209,7 +209,7 @@ def main() -> None:
 
     crawler = Spider(root_url, max_links, save_to_file='out.json')
     print(Fore.GREEN + f"Crawling: {root_url}")
-    print(crawler.start().keys())
+    crawler.start()
 
 
 if __name__ == '__main__':

@@ -27,14 +27,15 @@ from tiny_web_crawler.crawler import Spider
 root_url = 'http://github.com'
 max_links = 2
 
-spider = Spider(root_url, max_links)
-spider.start()
+crawl = Spider(root_url, max_links)
+crawl.start()
 
 
-# set workers and delay (default: delay is 0.5 sec and verbose is True)
+# Set workers and delay (default: delay is 0.5 sec and verbose is True)
+# If you do not want delay, set delay=0
 
-crawl = Spider('https://github.com', 5, max_workers=5, delay=1, verbose=False)
-spider.start()
+crawl = Spider(root_url='https://github.com', max_links=5, max_workers=5, delay=1, verbose=False)
+crawl.start()
 
 ```
 
