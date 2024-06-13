@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml)
 [![Stable Version](https://img.shields.io/pypi/v/tiny-web-crawler?label=stable)](https://pypi.org/project/tiny-web-crawler/#history)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/pypi/pyversions/tiny-web-crawler)](https://pypi.org/project/tiny-web-crawler/)
 [![Download Stats](https://img.shields.io/pypi/dm/tiny-web-crawler)](https://pypistats.org/packages/tiny-web-crawler)
 
@@ -11,9 +12,9 @@ A simple and efficient web crawler for Python.
 ## Features
 
 - Crawl web pages and extract links starting from a root URL recursively
+- Concurrent workers and custom delay
 - Handle relative and absolute URLs
 - Designed with simplicity in mind, making it easy to use and extend for various web crawling tasks
-- Set concurrent workers and custom delay
 
 ## Installation
 
