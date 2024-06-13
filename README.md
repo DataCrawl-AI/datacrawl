@@ -1,8 +1,8 @@
 # Tiny Web Crawler
 
 [![CI](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml)
-![Stable Version](https://img.shields.io/pypi/v/tiny-web-crawler?label=stable)
-![Python Versions](https://img.shields.io/pypi/pyversions/tiny-web-crawler)
+[![Stable Version](https://img.shields.io/pypi/v/tiny-web-crawler?label=stable)](https://pypi.org/project/tiny-web-crawler/#history)
+[![Python Versions](https://img.shields.io/pypi/pyversions/tiny-web-crawler)](https://pypi.org/project/tiny-web-crawler/)
 [![Download Stats](https://img.shields.io/pypi/dm/tiny-web-crawler)](https://pypistats.org/packages/tiny-web-crawler)
 
 A simple and efficient web crawler for Python.
