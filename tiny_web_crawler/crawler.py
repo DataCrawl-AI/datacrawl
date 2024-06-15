@@ -34,7 +34,8 @@ class Spider():
                  save_to_file: Optional[str] = None,
                  max_workers: int = 1,
                  delay: float = 0.5,
-                 verbose: bool = True) -> None:
+                 verbose: bool = True,
+                 stay_within_domain: bool = False) -> None:
         """
         Initializes the Spider class.
 
@@ -42,6 +43,7 @@ class Spider():
             root_url (str): The root URL to start crawling from.
             max_links (int): The maximum number of links to crawl.
             save_to_file (Optional[str]): The file to save the crawl results to.
+            stay_within_domain (bool): Whether to stay within the root domain.
         """
         self.root_url: str = root_url
         self.max_links: int = max_links
@@ -53,6 +55,8 @@ class Spider():
         self.max_workers: int = max_workers
         self.delay: float = delay
         self.verbose: bool = verbose
+        self.stay_within_domain: bool = stay_within_domain
+        self.root_domain: str = urllib.parse.urlparse(root_url).netloc
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -161,6 +165,11 @@ class Spider():
                 self.verbose_print(Fore.RED + f"Invalid url: {pretty_url}")
                 continue
 
+            # Check if we need to stay within the root domain
+            if self.stay_within_domain and urllib.parse.urlparse(pretty_url).netloc != self.root_domain:
+                self.verbose_print(Fore.RED + f"External link ignored: {pretty_url}")
+                continue
+
             if pretty_url in self.crawl_result[url]['urls']:
                 continue
 
@@ -207,7 +216,7 @@ def main() -> None:
     root_url = 'https://pypi.org/'
     max_links = 5
 
-    crawler = Spider(root_url, max_links, save_to_file='out.json')
+    crawler = Spider(root_url, max_links, save_to_file='out.json', stay_within_domain=True)
     print(Fore.GREEN + f"Crawling: {root_url}")
     crawler.start()
 
