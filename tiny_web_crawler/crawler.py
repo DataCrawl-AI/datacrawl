@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import json
 import urllib.parse
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, NotRequired, TypedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import time
@@ -40,7 +40,7 @@ class Spider():
     max_workers: int = 1
     delay: float = 0.5
     verbose: bool = True
-    crawl_result: Dict[str, Dict[str, Union[List[str], str]]] = field(default_factory=dict)
+    crawl_result: Dict[str, Dict[str, List[str]]] = field(default_factory=dict)
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
     scheme: str = field(default=DEFAULT_SCHEME, init=False)
@@ -149,7 +149,7 @@ class Spider():
         self.crawl_result[url] = {'urls': []}
 
         if self.include_body:
-            self.crawl_result[url]['body'] = str(soup.html)
+            self.crawl_result[url]['body'] = str(soup)
 
         for link in links:
             pretty_url = self.format_url(link['href'].lstrip(), url)
