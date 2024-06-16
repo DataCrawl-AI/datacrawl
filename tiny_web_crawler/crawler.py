@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass, field
 import json
 import urllib.parse
 from typing import Dict, List, Optional, Set
@@ -14,7 +15,7 @@ init(autoreset=True)
 
 DEFAULT_SCHEME: str = 'http://'
 
-
+@dataclass
 class Spider():
     """
     A simple web crawler class.
@@ -26,33 +27,20 @@ class Spider():
         crawl_set (Set[str]): A set of URLs to be crawled.
         link_count (int): The current count of crawled links.
         save_to_file (Optional[str]): The file path to save the crawl results.
+        max_workers (int): Max count of concurrent workers
+        delay (float): request delay
     """
 
-    def __init__(self,
-                 root_url: str,
-                 max_links: int = 5,
-                 save_to_file: Optional[str] = None,
-                 max_workers: int = 1,
-                 delay: float = 0.5,
-                 verbose: bool = True) -> None:
-        """
-        Initializes the Spider class.
-
-        Args:
-            root_url (str): The root URL to start crawling from.
-            max_links (int): The maximum number of links to crawl.
-            save_to_file (Optional[str]): The file to save the crawl results to.
-        """
-        self.root_url: str = root_url
-        self.max_links: int = max_links
-        self.crawl_result: Dict[str, Dict[str, List[str]]] = {}
-        self.crawl_set: Set[str] = set()
-        self.link_count: int = 0
-        self.save_to_file: Optional[str] = save_to_file
-        self.scheme: str = DEFAULT_SCHEME
-        self.max_workers: int = max_workers
-        self.delay: float = delay
-        self.verbose: bool = verbose
+    root_url: str
+    max_links: int = 5
+    save_to_file: Optional[str] = None
+    max_workers: int = 1
+    delay: float = 0.5
+    verbose: bool = True
+    crawl_result: Dict[str, Dict[str, List[str]]] = field(default_factory=dict)
+    crawl_set: Set[str] = field(default_factory=set)
+    link_count: int = 0
+    scheme: str = field(default=DEFAULT_SCHEME, init=False)
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -201,9 +189,6 @@ class Spider():
 
 
 def main() -> None:
-    """
-    The main function to initialize and start the crawler.
-    """
     root_url = 'https://pypi.org/'
     max_links = 5
 
