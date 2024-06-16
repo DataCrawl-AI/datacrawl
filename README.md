@@ -67,3 +67,23 @@ Crawled output sample for `https://github.com`
     }
 }
 ```
+
+
+## Contributing
+
+First of all, thank you for considering to contribute. If you are a first time contributor you can pick a `good-first-issue` and get started. Please feel free to ask questions.
+
+Before starting to work on an issue. Please get it assigned to you so that we can avoid multiple people from working on the same issue.
+
+### Dev setup
+
+- Install poetry in your system `pipx install poetry`
+- Clone the repo
+- Create a venv or use `poetry shell`
+- Run `poetry install --with dev`
+
+Before raising a PR. Please make sure you have these checks covered
+
+1. An issue is created which address the PR
+2. Tests are written for the changes
+3. All lint/test passes
