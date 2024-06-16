@@ -31,6 +31,7 @@ class Spider():
         max_workers (int): Max count of concurrent workers
         delay (float): request delay
         url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
+        include_body (bool): Whether or not to include the crawled page's body in crawl_result (default: False)
     """
 
     root_url: str
@@ -44,6 +45,7 @@ class Spider():
     link_count: int = 0
     scheme: str = field(default=DEFAULT_SCHEME, init=False)
     url_regex: Optional[str] = None
+    include_body: bool = False
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -145,6 +147,9 @@ class Spider():
 
         links = soup.body.find_all('a', href=True) if soup.body else []
         self.crawl_result[url] = {'urls': []}
+
+        if self.include_body:
+            self.crawl_result[url]['body'] = str(soup.html)
 
         for link in links:
             pretty_url = self.format_url(link['href'].lstrip(), url)
