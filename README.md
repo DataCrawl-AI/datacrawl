@@ -71,7 +71,7 @@ Crawled output sample for `https://github.com`
 
 ## Contributing
 
-First of all, thank you for considering to contribute. If you are a first time contributor you can pick a `good-first-issue` and get started. Please feel free to ask questions.
+Thank you for considering to contribute. If you are a first time contributor you can pick a `good-first-issue` and get started. Please feel free to ask questions.
 
 Before starting to work on an issue. Please get it assigned to you so that we can avoid multiple people from working on the same issue.
 
