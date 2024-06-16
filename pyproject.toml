@@ -9,6 +9,10 @@ homepage = "http://github.com/indrajithi/tiny-web-crawler"
 repository = "http://github.com/indrajithi/tiny-web-crawler"
 documentation = "http://github.com/indrajithi/tiny-web-crawler"
 
+
+[tool.poetry.scripts]
+post_install = "scripts:post_install"
+
 [tool.poetry.dependencies]
 python = "^3.8"
 validators = "^0.28.3"
