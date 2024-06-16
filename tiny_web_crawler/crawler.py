@@ -24,7 +24,7 @@ class Spider():
     Attributes:
         root_url (str): The root URL to start crawling from.
         max_links (int): The maximum number of links to crawl.
-        crawl_result (Dict[str, Dict[str, List[str]]]): The dictionary storing the crawl results.
+        crawl_result (Dict[str, Dict[str, Any]): The dictionary storing the crawl results.
         crawl_set (Set[str]): A set of URLs to be crawled.
         link_count (int): The current count of crawled links.
         save_to_file (Optional[str]): The file path to save the crawl results.
@@ -40,7 +40,7 @@ class Spider():
     max_workers: int = 1
     delay: float = 0.5
     verbose: bool = True
-    crawl_result: Dict[str, Any] = field(default_factory=dict)
+    crawl_result: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
     scheme: str = field(default=DEFAULT_SCHEME, init=False)
