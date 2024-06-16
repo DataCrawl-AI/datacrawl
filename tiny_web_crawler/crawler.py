@@ -6,9 +6,9 @@ from typing import Dict, List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import time
+import re
 import requests
 import validators
-import re
 from bs4 import BeautifulSoup
 from colorama import Fore, Style, init
 
