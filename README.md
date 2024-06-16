@@ -67,5 +67,3 @@ Crawled output sample for `https://github.com`
     }
 }
 ```
-
-
