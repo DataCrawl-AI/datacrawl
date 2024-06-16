@@ -20,7 +20,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        stages: [commit]
+        stages: [push]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.10.0'
     hooks:
