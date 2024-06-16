@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: pylint
+        name: Run pylint
+        entry: poetry run pylint
+        language: system
+        types: [python]
+        args: ["tiny_web_crawler"]
+        stages: [commit]
+      - id: pytest
+        name: Run pytest
+        entry: poetry run pytest
+        language: system
+        types: [python]
+        stages: [push]

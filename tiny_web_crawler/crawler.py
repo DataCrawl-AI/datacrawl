@@ -197,9 +197,6 @@ class Spider():
 
 
 def main() -> None:
-    """
-    The main function to initialize and start the crawler.
-    """
     root_url = 'https://pypi.org/'
     max_links = 5
 
