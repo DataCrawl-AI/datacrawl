@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import time
 import requests
+import re
 import validators
 from bs4 import BeautifulSoup
 from colorama import Fore, Style, init
@@ -26,6 +27,7 @@ class Spider():
         crawl_set (Set[str]): A set of URLs to be crawled.
         link_count (int): The current count of crawled links.
         save_to_file (Optional[str]): The file path to save the crawl results.
+        url_regex (Optional[str]): A regular expression to match urls against before crawling them.
     """
 
     def __init__(self,
@@ -34,7 +36,8 @@ class Spider():
                  save_to_file: Optional[str] = None,
                  max_workers: int = 1,
                  delay: float = 0.5,
-                 verbose: bool = True) -> None:
+                 verbose: bool = True,
+                 url_regex: Optional[str] = None) -> None:
         """
         Initializes the Spider class.
 
@@ -53,6 +56,7 @@ class Spider():
         self.max_workers: int = max_workers
         self.delay: float = delay
         self.verbose: bool = verbose
+        self.pattern: Optional[re.Pattern] = None if url_regex == None else re.compile(url_regex)
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -163,6 +167,11 @@ class Spider():
 
             if pretty_url in self.crawl_result[url]['urls']:
                 continue
+
+            if self.pattern:
+                if not self.pattern.match(pretty_url):
+                    self.verbose_print(Fore.RED + f"Url didn't match regex: {pretty_url}")
+                    continue
 
             self.crawl_result[url]['urls'].append(pretty_url)
             self.crawl_set.add(pretty_url)
