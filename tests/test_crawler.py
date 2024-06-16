@@ -66,6 +66,29 @@ def test_save_results() -> None:
         mocked_file.assert_called_once_with("out.json", "w", encoding='utf-8')
 
 
+@responses.activate
+def test_url_regex() -> None:
+    # Mock HTTP response
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body><a href='http://example.com/123'>link</a><a href='http://example.com/test'>link</a></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+
+    # This regex matches strings starting with "http://example.com/" 
+    # And only have numeric characters after it
+    regex = r"http://example\.com/[0-9]+" 
+
+    spider = Spider("http://example.com", 0, url_regex=regex)
+    spider.start()
+
+    assert spider.crawl_result["http://example.com"]["urls"] == ["http://example.com/123"]
+
+    assert "http://example.com/test" not in spider.crawl_result["http://example.com"]["urls"]
+
+
 @patch.object(Spider, "crawl")
 @patch.object(Spider, "save_results")
 def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:

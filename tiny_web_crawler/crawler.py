@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import time
+import re
 import requests
 import validators
 from bs4 import BeautifulSoup
@@ -29,6 +30,7 @@ class Spider():
         save_to_file (Optional[str]): The file path to save the crawl results.
         max_workers (int): Max count of concurrent workers
         delay (float): request delay
+        url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
     """
 
     root_url: str
@@ -41,6 +43,7 @@ class Spider():
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
     scheme: str = field(default=DEFAULT_SCHEME, init=False)
+    url_regex: Optional[str] = None
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -151,6 +154,11 @@ class Spider():
 
             if pretty_url in self.crawl_result[url]['urls']:
                 continue
+
+            if self.url_regex:
+                if not re.compile(self.url_regex).match(pretty_url):
+                    self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regx: {pretty_url}")
+                    continue
 
             self.crawl_result[url]['urls'].append(pretty_url)
             self.crawl_set.add(pretty_url)
