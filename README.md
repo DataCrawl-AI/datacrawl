@@ -81,6 +81,8 @@ Before starting to work on an issue. Please get it assigned to you so that we ca
 - Clone the repo
 - Create a venv or use `poetry shell`
 - Run `poetry install --with dev`
+- `pre-commit install` ([see](https://github.com/indrajithi/tiny-web-crawler/issues/23))
+- `pre-commit install --hook-type pre-push`
 
 Before raising a PR. Please make sure you have these checks covered
 
