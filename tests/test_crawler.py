@@ -77,9 +77,9 @@ def test_url_regex() -> None:
         content_type="text/html",
     )
 
-    # This regex matches strings starting with "http://example.com/" 
+    # This regex matches strings starting with "http://example.com/"
     # And only have numeric characters after it
-    regex = r"http://example\.com/[0-9]+" 
+    regex = r"http://example\.com/[0-9]+"
 
     spider = Spider("http://example.com", 0, url_regex=regex)
     spider.start()
@@ -87,6 +87,37 @@ def test_url_regex() -> None:
     assert spider.crawl_result["http://example.com"]["urls"] == ["http://example.com/123"]
 
     assert "http://example.com/test" not in spider.crawl_result["http://example.com"]["urls"]
+
+
+@responses.activate
+def test_include_body() -> None:
+    # Mock HTTP response
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body><a href='http://example.com/test'>link</a></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+    responses.add(
+        responses.GET,
+        "http://example.com/test",
+        body="<html><body><h>This is a header</h></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+
+    spider = Spider("http://example.com", include_body=True)
+    spider.start()
+
+    assert (
+        spider.crawl_result["http://example.com"]["body"]
+        == '<html><body><a href="http://example.com/test">link</a></body></html>'
+    )
+    assert (
+        spider.crawl_result["http://example.com/test"]["body"]
+        == "<html><body><h>This is a header</h></body></html>"
+    )
 
 
 @patch.object(Spider, "crawl")

@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import json
 import urllib.parse
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import time
@@ -24,13 +24,14 @@ class Spider():
     Attributes:
         root_url (str): The root URL to start crawling from.
         max_links (int): The maximum number of links to crawl.
-        crawl_result (Dict[str, Dict[str, List[str]]]): The dictionary storing the crawl results.
+        crawl_result (Dict[str, Dict[str, Any]): The dictionary storing the crawl results.
         crawl_set (Set[str]): A set of URLs to be crawled.
         link_count (int): The current count of crawled links.
         save_to_file (Optional[str]): The file path to save the crawl results.
         max_workers (int): Max count of concurrent workers
         delay (float): request delay
         url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
+        include_body (bool): Whether or not to include the crawled page's body in crawl_result (default: False)
     """
 
     root_url: str
@@ -39,11 +40,12 @@ class Spider():
     max_workers: int = 1
     delay: float = 0.5
     verbose: bool = True
-    crawl_result: Dict[str, Dict[str, List[str]]] = field(default_factory=dict)
+    crawl_result: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
     scheme: str = field(default=DEFAULT_SCHEME, init=False)
     url_regex: Optional[str] = None
+    include_body: bool = False
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -145,6 +147,9 @@ class Spider():
 
         links = soup.body.find_all('a', href=True) if soup.body else []
         self.crawl_result[url] = {'urls': []}
+
+        if self.include_body:
+            self.crawl_result[url]['body'] = str(soup)
 
         for link in links:
             pretty_url = self.format_url(link['href'].lstrip(), url)
