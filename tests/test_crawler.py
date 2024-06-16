@@ -117,7 +117,7 @@ def test_include_body() -> None:
     assert (
         spider.crawl_result["http://example.com/test"]["body"]
         == "<html><body><h>This is a header</h></body></html>"
-)
+    )
 
 
 @patch.object(Spider, "crawl")
