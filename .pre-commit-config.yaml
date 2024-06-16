@@ -18,5 +18,6 @@ repos:
         name: Run pytest
         entry: poetry run pytest
         language: system
-        types: [python]
-        stages: [push]
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
