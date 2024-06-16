@@ -18,5 +18,11 @@ repos:
         name: Run pytest
         entry: poetry run pytest
         language: system
-        types: [python]
-        stages: [push]
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.10.0'
+    hooks:
+      - id: mypy
+        args: [--install-types, --non-interactive]
