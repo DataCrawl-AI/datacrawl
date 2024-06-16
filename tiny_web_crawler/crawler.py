@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import dataclass, field
 import json
 import urllib.parse
 from typing import Dict, List, Optional, Set
@@ -16,6 +17,7 @@ init(autoreset=True)
 DEFAULT_SCHEME: str = 'http://'
 
 
+@dataclass
 class Spider():
     """
     A simple web crawler class.
@@ -27,36 +29,22 @@ class Spider():
         crawl_set (Set[str]): A set of URLs to be crawled.
         link_count (int): The current count of crawled links.
         save_to_file (Optional[str]): The file path to save the crawl results.
-        url_regex (Optional[str]): A regular expression to match urls against before crawling them.
+        max_workers (int): Max count of concurrent workers
+        delay (float): request delay
+        url_regex (Optional[str]): A regex against which urls will be matched before being crawled
     """
 
-    def __init__(self,
-                 root_url: str,
-                 max_links: int = 5,
-                 save_to_file: Optional[str] = None,
-                 max_workers: int = 1,
-                 delay: float = 0.5,
-                 verbose: bool = True,
-                 url_regex: Optional[str] = None) -> None:
-        """
-        Initializes the Spider class.
-
-        Args:
-            root_url (str): The root URL to start crawling from.
-            max_links (int): The maximum number of links to crawl.
-            save_to_file (Optional[str]): The file to save the crawl results to.
-        """
-        self.root_url: str = root_url
-        self.max_links: int = max_links
-        self.crawl_result: Dict[str, Dict[str, List[str]]] = {}
-        self.crawl_set: Set[str] = set()
-        self.link_count: int = 0
-        self.save_to_file: Optional[str] = save_to_file
-        self.scheme: str = DEFAULT_SCHEME
-        self.max_workers: int = max_workers
-        self.delay: float = delay
-        self.verbose: bool = verbose
-        self.pattern: Optional[re.Pattern] = None if url_regex == None else re.compile(url_regex)
+    root_url: str
+    max_links: int = 5
+    save_to_file: Optional[str] = None
+    max_workers: int = 1
+    delay: float = 0.5
+    verbose: bool = True
+    crawl_result: Dict[str, Dict[str, List[str]]] = field(default_factory=dict)
+    crawl_set: Set[str] = field(default_factory=set)
+    link_count: int = 0
+    scheme: str = field(default=DEFAULT_SCHEME, init=False)
+    url_regex: Optional[str] = None
 
     def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
         """
@@ -168,8 +156,8 @@ class Spider():
             if pretty_url in self.crawl_result[url]['urls']:
                 continue
 
-            if self.pattern:
-                if not self.pattern.match(pretty_url):
+            if self.url_regex:
+                if not re.compile(self.url_regex).match(pretty_url):
                     self.verbose_print(Fore.RED + f"Url didn't match regex: {pretty_url}")
                     continue
 
