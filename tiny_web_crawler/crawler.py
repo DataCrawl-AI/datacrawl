@@ -7,15 +7,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import time
 import requests
-import re
 import validators
+import re
 from bs4 import BeautifulSoup
 from colorama import Fore, Style, init
 
 init(autoreset=True)
 
 DEFAULT_SCHEME: str = 'http://'
-
 
 @dataclass
 class Spider():
@@ -31,7 +30,7 @@ class Spider():
         save_to_file (Optional[str]): The file path to save the crawl results.
         max_workers (int): Max count of concurrent workers
         delay (float): request delay
-        url_regex (Optional[str]): A regex against which urls will be matched before being crawled
+        url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
     """
 
     root_url: str
