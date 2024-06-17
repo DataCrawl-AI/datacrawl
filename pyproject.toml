@@ -8,7 +8,9 @@ readme = "README.md"
 homepage = "http://github.com/indrajithi/tiny-web-crawler"
 repository = "http://github.com/indrajithi/tiny-web-crawler"
 documentation = "http://github.com/indrajithi/tiny-web-crawler"
-
+packages = [
+    { include = "tiny_web_crawler", from = "src" }
+]
 
 [tool.poetry.scripts]
 post_install = "scripts:post_install"

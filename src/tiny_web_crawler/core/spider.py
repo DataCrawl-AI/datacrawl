@@ -1,23 +1,22 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 import json
-import urllib.parse
-from typing import Dict, List, Optional, Set, Any
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
 import time
 import re
-import requests
-import validators
-from bs4 import BeautifulSoup
-from colorama import Fore, Style, init
 
-init(autoreset=True)
+from typing import Dict, List, Optional, Set, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from colorama import Fore, Style
+
+from tiny_web_crawler.networking.fetcher import fetch_url
+from tiny_web_crawler.networking.validator import is_valid_url
+from tiny_web_crawler.networking.formatter import format_url
 
 DEFAULT_SCHEME: str = 'http://'
 
 @dataclass
-class Spider():
+class Spider:
     """
     A simple web crawler class.
 
@@ -47,44 +46,6 @@ class Spider():
     url_regex: Optional[str] = None
     include_body: bool = False
 
-    def fetch_url(self, url: str) -> Optional[BeautifulSoup]:
-        """
-        Reads the content of a URL and parses it using BeautifulSoup with lxml parser.
-
-        Args:
-            url (str): The URL to fetch and parse.
-
-        Returns:
-            Optional[BeautifulSoup]: A BeautifulSoup object if the URL is fetched successfully, None otherwise.
-        """
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
-            data = response.text
-            return BeautifulSoup(data, 'lxml')
-        except requests.exceptions.HTTPError as http_err:
-            print(Fore.RED + f"HTTP error occurred: {http_err}")
-        except requests.exceptions.ConnectionError as conn_err:
-            print(Fore.RED + f"Connection error occurred: {conn_err}")
-        except requests.exceptions.Timeout as timeout_err:
-            print(Fore.RED + f"Timeout error occurred: {timeout_err}")
-        except requests.exceptions.RequestException as req_err:
-            print(Fore.RED + f"Request error occurred: {req_err}")
-        return None
-
-    @staticmethod
-    def is_valid_url(url: str) -> bool:
-        """
-        Checks if the provided URL is valid.
-
-        Args:
-            url (str): The URL to validate.
-
-        Returns:
-            bool: True if the URL is valid, False otherwise.
-        """
-        return bool(validators.url(url))
-
     def verbose_print(self, content: str) -> None:
         if self.verbose:
             print(content)
@@ -97,34 +58,6 @@ class Spider():
             with open(self.save_to_file, 'w', encoding='utf-8') as file:
                 json.dump(self.crawl_result, file, indent=4)
 
-    def format_url(self, url: str, base_url: str) -> str:
-        """
-        Formats a URL to ensure it is absolute and removes any query parameters or fragments.
-
-        Args:
-            url (str): The URL to format.
-            base_url (str): The base URL to resolve relative URLs.
-
-        Returns:
-            str: The formatted URL.
-        """
-        parsed_url = urllib.parse.urlparse(url)
-        base_url = base_url.rstrip('/')
-
-        if parsed_url.scheme:
-            self.scheme = parsed_url.scheme
-
-        if not parsed_url.scheme and not parsed_url.netloc:
-            if self.is_valid_url(DEFAULT_SCHEME + parsed_url.path):
-                return DEFAULT_SCHEME + parsed_url.path
-
-            if parsed_url.path.startswith('/'):
-                return base_url + parsed_url.path
-
-            return f"{base_url}/{parsed_url.path}"
-
-        return f"{self.scheme}://{parsed_url.netloc}{parsed_url.path}"
-
     def crawl(self, url: str) -> None:
         """
         Crawls a given URL, extracts links, and adds them to the crawl results.
@@ -132,7 +65,7 @@ class Spider():
         Args:
             url (str): The URL to crawl.
         """
-        if not self.is_valid_url(url):
+        if not is_valid_url(url):
             self.verbose_print(Fore.RED + f"Invalid url to crawl: {url}")
             return
 
@@ -141,7 +74,7 @@ class Spider():
             return
 
         self.verbose_print(Fore.GREEN + f"Crawling: {url}")
-        soup = self.fetch_url(url)
+        soup = fetch_url(url)
         if not soup:
             return
 
@@ -152,8 +85,8 @@ class Spider():
             self.crawl_result[url]['body'] = str(soup)
 
         for link in links:
-            pretty_url = self.format_url(link['href'].lstrip(), url)
-            if not self.is_valid_url(pretty_url):
+            pretty_url = format_url(link['href'].lstrip(), url, self.scheme)
+            if not is_valid_url(pretty_url):
                 self.verbose_print(Fore.RED + f"Invalid url: {pretty_url}")
                 continue
 
@@ -162,7 +95,7 @@ class Spider():
 
             if self.url_regex:
                 if not re.compile(self.url_regex).match(pretty_url):
-                    self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regx: {pretty_url}")
+                    self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regex: {pretty_url}")
                     continue
 
             self.crawl_result[url]['urls'].append(pretty_url)
@@ -171,8 +104,7 @@ class Spider():
 
         if self.link_count < self.max_links:
             self.link_count += 1
-            self.verbose_print(
-                Fore.GREEN + f"Links crawled: {self.link_count}")
+            self.verbose_print(Fore.GREEN + f"Links crawled: {self.link_count}")
 
     def start(self) -> Dict[str, Dict[str, List[str]]]:
         """
@@ -199,16 +131,3 @@ class Spider():
             self.save_results()
         self.verbose_print(Style.BRIGHT + Fore.MAGENTA + "Exiting....")
         return self.crawl_result
-
-
-def main() -> None:
-    root_url = 'https://pypi.org/'
-    max_links = 5
-
-    crawler = Spider(root_url, max_links, save_to_file='out.json')
-    print(Fore.GREEN + f"Crawling: {root_url}")
-    crawler.start()
-
-
-if __name__ == '__main__':
-    main()
