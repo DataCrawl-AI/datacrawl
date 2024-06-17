@@ -157,6 +157,13 @@ def test_crawl() -> None:
         status=200,
         content_type="text/html",
     )
+    responses.add(
+        responses.GET,
+        "http://example.com/test",
+        body="<html><body><a href='http://example.com'>link</a></body></html>",
+        status=200,
+        content_type="text/html",
+    )
 
     spider = Spider("http://example.com", 10)
     spider.crawl("http://example.com")
@@ -165,6 +172,123 @@ def test_crawl() -> None:
     assert spider.crawl_result["http://example.com"]["urls"] == [
         "http://example.com/test"
     ]
+
+    spider.crawl("http://example.com/test")
+
+    assert "http://example.com/test" in spider.crawl_result
+    assert spider.crawl_result["http://example.com/test"]["urls"] == [
+        "http://example.com"
+    ]
+
+
+@responses.activate
+def test_crawl_invalid_url(capsys) -> None: # type: ignore
+    spider = Spider("http://example.com")
+
+    spider.crawl("invalid_url")
+
+    captured = capsys.readouterr()
+    assert "Invalid url to crawl:" in captured.out
+    assert spider.crawl_result == {}
+
+
+@responses.activate
+def test_crawl_already_crawled_url(capsys) -> None: # type: ignore
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body><a href='http://example.com'>link</a></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+
+    spider = Spider("http://example.com")
+
+    spider.crawl("http://example.com")
+    spider.crawl("http://example.com")
+
+    captured = capsys.readouterr()
+    assert "URL already crawled:" in captured.out
+    assert spider.crawl_result == {'http://example.com':
+                                    {'urls': ['http://example.com']
+                                    }
+                                  }
+
+
+@responses.activate
+def test_crawl_unfetchable_url() -> None:
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body><a href='http://example.com'>link</a></body></html>",
+        status=404,
+        content_type="text/html",
+    )
+
+    spider = Spider("http://example.com")
+
+    spider.crawl("http://example.com")
+    assert spider.crawl_result == {}
+
+
+@responses.activate
+def test_crawl_found_invalid_url(capsys) -> None: # type: ignore
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body><a href='^invalidurl^'>link</a></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+
+    spider = Spider("http://example.com")
+    spider.crawl("http://example.com")
+
+    captured = capsys.readouterr()
+    assert "Invalid url:" in captured.out
+    assert spider.crawl_result == {'http://example.com':
+                                    {'urls': []
+                                    }
+                                  }
+
+
+@responses.activate
+def test_crawl_found_duplicate_url() -> None:
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body><a href='http://duplicate.com'>link1</a>"
+        +"<a href='http://duplicate.com'>link2</a></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+
+    spider = Spider("http://example.com")
+    spider.crawl("http://example.com")
+
+    assert spider.crawl_result == {'http://example.com':
+                                    {'urls': ['http://duplicate.com']
+                                    }
+                                  }
+
+
+@responses.activate
+def test_crawl_no_urls_in_page() -> None:
+    responses.add(
+        responses.GET,
+        "http://example.com",
+        body="<html><body></body></html>",
+        status=200,
+        content_type="text/html",
+    )
+
+    spider = Spider("http/example.com")
+    spider.crawl("http://example.com")
+
+    assert spider.crawl_result == {'http://example.com':
+                                    {'urls': []
+                                    }
+                                  }
 
 
 @responses.activate
