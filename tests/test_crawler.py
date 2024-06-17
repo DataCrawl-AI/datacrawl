@@ -4,7 +4,7 @@ import responses
 
 import requests
 
-from tiny_web_crawler.crawler import Spider
+from tiny_web_crawler.crawler import Spider, DEFAULT_SCHEME
 
 def test_is_valid_url() -> None:
     assert Spider.is_valid_url("http://example.com") is True
@@ -13,11 +13,30 @@ def test_is_valid_url() -> None:
 
 def test_format_url() -> None:
     spider = Spider("http://example.com", 10)
-    assert spider.format_url(
-        "/test", "http://example.com") == "http://example.com/test"
+
+    assert (
+        spider.format_url("/test", "http://example.com")
+        == "http://example.com/test"
+    )
+
     assert (
         spider.format_url("http://example.com/test", "http://example.com")
         == "http://example.com/test"
+    )
+
+    assert (
+        spider.format_url('path1/path2', 'http://example.com')
+        == 'http://example.com/path1/path2'
+    )
+
+    assert (
+        spider.format_url('/path1/path2', 'http://example.com')
+        == 'http://example.com/path1/path2'
+    )
+
+    assert (
+        spider.format_url('path.com', 'http://example.com')
+        == DEFAULT_SCHEME + 'path.com'
     )
 
 
