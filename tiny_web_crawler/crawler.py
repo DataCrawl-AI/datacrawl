@@ -162,7 +162,7 @@ class Spider():
 
             if self.url_regex:
                 if not re.compile(self.url_regex).match(pretty_url):
-                    self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regx: {pretty_url}")
+                    self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regex: {pretty_url}")
                     continue
 
             self.crawl_result[url]['urls'].append(pretty_url)
