@@ -83,8 +83,9 @@ Thank you for considering to contribute.
 - Install poetry in your system `pipx install poetry`
 - Clone the repo you forked 
 - Create a venv or use `poetry shell`
-- `poetry install --with dev`
-- `pre-commit install` ([see](https://github.com/indrajithi/tiny-web-crawler/issues/23)) 
+- Run `poetry install --with dev`
+- `pre-commit install` ([see](https://github.com/indrajithi/tiny-web-crawler/issues/23))
+- `pre-commit install --hook-type pre-push`
 
 ### Before raising a PR. Please make sure you have these checks covered
 
