@@ -2,8 +2,9 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import responses
 
-from tiny_web_crawler.crawler import Spider
+import requests
 
+from tiny_web_crawler.crawler import Spider
 
 def test_is_valid_url() -> None:
     assert Spider.is_valid_url("http://example.com") is True
@@ -33,6 +34,98 @@ def test_fetch_url() -> None:
 
     assert resp is not None
     assert resp.text == "link"
+
+
+@responses.activate
+def test_fetch_url_connection_error(capsys) -> None: # type: ignore
+    spider = Spider("http://connection.error")
+
+    # Fetch url whose response isn't mocked to raise ConnectionError
+    resp = spider.fetch_url("http://connection.error")
+
+    captured = capsys.readouterr()
+    assert "Connection error occurred:" in captured.out
+    assert resp is None
+
+
+@responses.activate
+def test_fetch_url_http_error(capsys) -> None: # type: ignore
+    responses.add(
+        responses.GET,
+        "http://http.error/404",
+        body="<html><body><a href='http://http.error'>link</a></body></html>",
+        status=404
+    )
+    responses.add(
+        responses.GET,
+        "http://http.error/408",
+        body="<html><body><a href='http://http.error'>link</a></body></html>",
+        status=408
+    )
+    responses.add(
+        responses.GET,
+        "http://http.error/403",
+        body="<html><body><a href='http://http.error'>link</a></body></html>",
+        status=403
+    )
+
+    spider = Spider("http://http.error")
+
+    resp404 = spider.fetch_url("http://http.error/404")
+
+    captured = capsys.readouterr()
+    assert "HTTP error occurred:" in captured.out
+    assert resp404 is None
+
+    resp408 = spider.fetch_url("http://http.error/408")
+
+    captured = capsys.readouterr()
+    assert "HTTP error occurred:" in captured.out
+    assert resp408 is None
+
+    resp403 = spider.fetch_url("http://http.error/403")
+
+    captured = capsys.readouterr()
+    assert "HTTP error occurred:" in captured.out
+    assert resp403 is None
+
+
+@responses.activate
+def test_fetch_url_timeout_error(capsys) -> None: # type: ignore
+    responses.add(
+        responses.GET,
+        "http://timeout.error",
+        body=requests.exceptions.Timeout(),
+        status=408
+    )
+
+    spider = Spider("http://timeout.error")
+
+    # Fetch url whose response isn't mocked to raise ConnectionError
+    resp = spider.fetch_url("http://timeout.error")
+
+    captured = capsys.readouterr()
+    assert "Timeout error occurred:" in captured.out
+    assert resp is None
+
+
+@responses.activate
+def test_fetch_url_requests_exception(capsys) -> None: # type: ignore
+    responses.add(
+        responses.GET,
+        "http://requests.exception",
+        body=requests.exceptions.RequestException(),
+        status=404
+    )
+
+    spider = Spider("http://requests.exception")
+
+    # Fetch url whose response isn't mocked to raise ConnectionError
+    resp = spider.fetch_url("http://requests.exception")
+
+    captured = capsys.readouterr()
+    assert "Request error occurred:" in captured.out
+    assert resp is None
 
 
 @responses.activate
@@ -72,7 +165,8 @@ def test_url_regex() -> None:
     responses.add(
         responses.GET,
         "http://example.com",
-        body="<html><body><a href='http://example.com/123'>link</a><a href='http://example.com/test'>link</a></body></html>",
+        body="<html><body><a href='http://example.com/123'>link</a>"
+        +"<a href='http://example.com/test'>link</a></body></html>",
         status=200,
         content_type="text/html",
     )
