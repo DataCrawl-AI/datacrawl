@@ -6,6 +6,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/pypi/pyversions/tiny-web-crawler)](https://pypi.org/project/tiny-web-crawler/)
 [![Download Stats](https://img.shields.io/pypi/dm/tiny-web-crawler)](https://pypistats.org/packages/tiny-web-crawler)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?logo=discord&style=flat-square)](https://discord.gg/avfTZ7K2)
+
 
 A simple and efficient web crawler for Python.
 
@@ -72,17 +74,17 @@ Crawled output sample for `https://github.com`
 
 ## Contributing
 
-Thank you for considering to contribute. 
+Thank you for considering to contribute.
 
 - If you are a first time contributor you can pick a [`good-first-issue`](https://github.com/indrajithi/tiny-web-crawler/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) and get started.
 - Please feel free to ask questions.
 - Before starting to work on an issue. Please get it assigned to you so that we can avoid multiple people from working on the same issue.
-- We are working on doing our first major release. Please check this [`issue`](https://github.com/indrajithi/tiny-web-crawler/issues/24) and see if anything interests you. 
+- We are working on doing our first major release. Please check this [`issue`](https://github.com/indrajithi/tiny-web-crawler/issues/24) and see if anything interests you.
 
 ### Dev setup
 
 - Install poetry in your system `pipx install poetry`
-- Clone the repo you forked 
+- Clone the repo you forked
 - Create a venv or use `poetry shell`
 - Run `poetry install --with dev`
 - `pre-commit install` ([see](https://github.com/indrajithi/tiny-web-crawler/issues/23))
