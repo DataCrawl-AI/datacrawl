@@ -199,16 +199,3 @@ class Spider():
             self.save_results()
         self.verbose_print(Style.BRIGHT + Fore.MAGENTA + "Exiting....")
         return self.crawl_result
-
-
-def main() -> None:
-    root_url = 'https://pypi.org/'
-    max_links = 5
-
-    crawler = Spider(root_url, max_links, save_to_file='out.json')
-    print(Fore.GREEN + f"Crawling: {root_url}")
-    crawler.start()
-
-
-if __name__ == '__main__':
-    main()
