@@ -373,3 +373,22 @@ def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
     assert spider.crawl_result["http://example.com"]["urls"] == [
         "http://example.com/test"
     ]
+
+
+@patch.object(Spider, "crawl")
+@patch.object(Spider, "save_results")
+def test_start_with_save_to_file(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
+    spider = Spider("http://example.com", 10, save_to_file="file.txt")
+    mock_crawl.side_effect = lambda url: spider.crawl_result.update(
+        {url: {"urls": ["http://example.com/test"]}}
+    )
+
+    spider.start()
+
+    assert mock_crawl.call_count == 1
+    assert "http://example.com" in spider.crawl_result
+    assert spider.crawl_result["http://example.com"]["urls"] == [
+        "http://example.com/test"
+    ]
+
+    mock_save_results.assert_called_once()
