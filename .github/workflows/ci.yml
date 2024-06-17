@@ -79,6 +79,8 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_COVERAGE_FILES: true
+          MINIMUM_GREEN: 80
+          MINIMUM_ORANGE: 70
 
   publish:
     needs: test
