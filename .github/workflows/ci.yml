@@ -20,10 +20,10 @@ jobs:
           poetry install --with dev
       - name: Run linter :pylint
         run: |
-          poetry run pylint tiny_web_crawler
+          poetry run pylint src
       - name: Run mypy :type_checking
         run: |
-          poetry run mypy --install-types --non-interactive tiny_web_crawler
+          poetry run mypy --install-types --non-interactive src
 
   test:
     needs: lint
