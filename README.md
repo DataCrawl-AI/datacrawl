@@ -2,15 +2,26 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/indrajithi/tiny-web-crawler/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                               |    Stmts |     Miss |   Cover |   Missing |
-|----------------------------------- | -------: | -------: | ------: | --------: |
-| script.py                          |        3 |        3 |      0% |       1-4 |
-| tests/\_\_init\_\_.py              |        0 |        0 |    100% |           |
-| tests/test\_crawler.py             |      151 |        0 |    100% |           |
-| tests/utils.py                     |        4 |        0 |    100% |           |
-| tiny\_web\_crawler/\_\_init\_\_.py |        0 |        0 |    100% |           |
-| tiny\_web\_crawler/crawler.py      |      122 |        6 |     95% |205-210, 214 |
-|                          **TOTAL** |  **280** |    **9** | **97%** |           |
+| Name                                              |    Stmts |     Miss |   Cover |   Missing |
+|-------------------------------------------------- | -------: | -------: | ------: | --------: |
+| script.py                                         |        3 |        3 |      0% |       1-4 |
+| src/tiny\_web\_crawler/\_\_init\_\_.py            |        0 |        0 |    100% |           |
+| src/tiny\_web\_crawler/core/\_\_init\_\_.py       |        0 |        0 |    100% |           |
+| src/tiny\_web\_crawler/core/spider.py             |       82 |        0 |    100% |           |
+| src/tiny\_web\_crawler/networking/\_\_init\_\_.py |        0 |        0 |    100% |           |
+| src/tiny\_web\_crawler/networking/fetcher.py      |       19 |        0 |    100% |           |
+| src/tiny\_web\_crawler/networking/formatter.py    |       15 |        0 |    100% |           |
+| src/tiny\_web\_crawler/networking/validator.py    |        3 |        0 |    100% |           |
+| tests/\_\_init\_\_.py                             |        0 |        0 |    100% |           |
+| tests/core/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
+| tests/core/test\_spider.py                        |        0 |        0 |    100% |           |
+| tests/networking/\_\_init\_\_.py                  |        0 |        0 |    100% |           |
+| tests/networking/test\_fetcher.py                 |       39 |        0 |    100% |           |
+| tests/networking/test\_formatter.py               |        7 |        0 |    100% |           |
+| tests/networking/test\_validator.py               |        4 |        0 |    100% |           |
+| tests/test\_crawler.py                            |      100 |        0 |    100% |           |
+| tests/utils.py                                    |        4 |        0 |    100% |           |
+|                                         **TOTAL** |  **276** |    **3** | **99%** |           |
 
 
 ## Setup coverage badge
