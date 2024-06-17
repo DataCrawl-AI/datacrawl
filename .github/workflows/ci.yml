@@ -44,7 +44,7 @@ jobs:
           poetry install --with dev
       - name: Run tests
         run: |
-          poetry run pytest
+          poetry run pytest --cov=./
 
   publish:
     needs: test
