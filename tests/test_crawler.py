@@ -69,44 +69,27 @@ def test_fetch_url_connection_error(capsys) -> None: # type: ignore
 
 @responses.activate
 def test_fetch_url_http_error(capsys) -> None: # type: ignore
-    responses.add(
-        responses.GET,
-        "http://http.error/404",
-        body="<html><body><a href='http://http.error'>link</a></body></html>",
-        status=404
-    )
-    responses.add(
-        responses.GET,
-        "http://http.error/408",
-        body="<html><body><a href='http://http.error'>link</a></body></html>",
-        status=408
-    )
-    responses.add(
-        responses.GET,
-        "http://http.error/403",
-        body="<html><body><a href='http://http.error'>link</a></body></html>",
-        status=403
-    )
+    error_codes = [403, 404, 408]
+
+    def setup_mock_response(error_code:int) -> None:
+        responses.add(
+            responses.GET,
+            f"http://http.error/{error_code}",
+            body="<html><body><a href='http://http.error'>link</a></body></html>",
+            status=error_code
+        )
+
 
     spider = Spider("http://http.error")
 
-    resp404 = spider.fetch_url("http://http.error/404")
+    for error_code in error_codes:
+        setup_mock_response(error_code)
+        resp = spider.fetch_url(f"http://http.error/{error_code}")
 
-    captured = capsys.readouterr()
-    assert "HTTP error occurred:" in captured.out
-    assert resp404 is None
+        captured = capsys.readouterr()
 
-    resp408 = spider.fetch_url("http://http.error/408")
-
-    captured = capsys.readouterr()
-    assert "HTTP error occurred:" in captured.out
-    assert resp408 is None
-
-    resp403 = spider.fetch_url("http://http.error/403")
-
-    captured = capsys.readouterr()
-    assert "HTTP error occurred:" in captured.out
-    assert resp403 is None
+        assert "HTTP error occurred:" in captured.out
+        assert resp is None
 
 
 @responses.activate
