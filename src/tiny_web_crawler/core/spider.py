@@ -55,6 +55,9 @@ class Spider:
     def __post_init__(self) -> None:
         self.root_netloc = urllib.parse.urlparse(self.root_url).netloc
 
+        if self.internal_links_only and self.external_links_only:
+            raise ValueError("Only one of internal_links_only and external_links_only can be set to True")
+
     def verbose_print(self, content: str) -> None:
         if self.verbose:
             print(content)
