@@ -2,6 +2,8 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import responses
 
+import pytest
+
 from tiny_web_crawler.core.spider import Spider
 from tests.utils import setup_mock_response
 
@@ -218,6 +220,12 @@ def test_external_links_only(capsys) -> None: # type: ignore
     captured = capsys.readouterr()
     assert "Skipping: Internal link:" in captured.out
     assert spider.crawl_result == {"http://internal.com": {"urls": ["http://external.com/test"]}}
+
+
+@responses.activate
+def test_external_and_internal_links_only() -> None:
+    with pytest.raises(ValueError):
+        Spider("http://example.com", external_links_only=True, internal_links_only=True)
 
 
 @patch.object(Spider, "crawl")
