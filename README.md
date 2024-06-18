@@ -7,7 +7,7 @@
 | script.py                                         |        3 |        3 |      0% |       1-4 |
 | src/tiny\_web\_crawler/\_\_init\_\_.py            |        0 |        0 |    100% |           |
 | src/tiny\_web\_crawler/core/\_\_init\_\_.py       |        0 |        0 |    100% |           |
-| src/tiny\_web\_crawler/core/spider.py             |       82 |        0 |    100% |           |
+| src/tiny\_web\_crawler/core/spider.py             |       96 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/\_\_init\_\_.py |        0 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/fetcher.py      |       19 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/formatter.py    |       15 |        0 |    100% |           |
@@ -19,9 +19,9 @@
 | tests/networking/test\_fetcher.py                 |       39 |        0 |    100% |           |
 | tests/networking/test\_formatter.py               |        7 |        0 |    100% |           |
 | tests/networking/test\_validator.py               |        4 |        0 |    100% |           |
-| tests/test\_crawler.py                            |      100 |        0 |    100% |           |
+| tests/test\_crawler.py                            |      121 |        0 |    100% |           |
 | tests/utils.py                                    |        4 |        0 |    100% |           |
-|                                         **TOTAL** |  **276** |    **3** | **99%** |           |
+|                                         **TOTAL** |  **311** |    **3** | **99%** |           |
 
 
 ## Setup coverage badge
