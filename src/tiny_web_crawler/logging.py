@@ -4,7 +4,7 @@ from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL, FATAL, NOTSET # pylin
 LOGGER_NAME: str = "tiny-web-crawler-logger"
 DEFAULT_LOG_LEVEL = INFO
 
-logging.basicConfig(level=DEFAULT_LOG_LEVEL)
+logging.getLogger().setLevel(level=DEFAULT_LOG_LEVEL)
 
 def get_logger() -> logging.Logger:
     return logging.getLogger(LOGGER_NAME)
