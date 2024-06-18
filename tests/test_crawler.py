@@ -186,6 +186,40 @@ def test_include_body() -> None:
     )
 
 
+@responses.activate
+def test_internal_links_only(capsys) -> None: # type: ignore
+    setup_mock_response(
+        url="http://internal.com",
+        body="<html><body><a href='http://internal.com/test'>link</a>"
+        +"<a href='http://external.com/test'>link</a></body></html>",
+        status=200,
+    )
+
+    spider = Spider("http://internal.com", internal_links_only=True)
+    spider.crawl("http://internal.com")
+
+    captured = capsys.readouterr()
+    assert "Skipping: External link:" in captured.out
+    assert spider.crawl_result == {"http://internal.com": {"urls": ["http://internal.com/test"]}}
+
+
+@responses.activate
+def test_external_links_only(capsys) -> None: # type: ignore
+    setup_mock_response(
+        url="http://internal.com",
+        body="<html><body><a href='http://internal.com/test'>link</a>"
+        +"<a href='http://external.com/test'>link</a></body></html>",
+        status=200,
+    )
+
+    spider = Spider("http://internal.com", external_links_only=True)
+    spider.crawl("http://internal.com")
+
+    captured = capsys.readouterr()
+    assert "Skipping: Internal link:" in captured.out
+    assert spider.crawl_result == {"http://internal.com": {"urls": ["http://external.com/test"]}}
+
+
 @patch.object(Spider, "crawl")
 @patch.object(Spider, "save_results")
 def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
