@@ -8,13 +8,14 @@ import re
 from typing import Dict, List, Optional, Set, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib.parse
-from colorama import Fore, Style
 
 from tiny_web_crawler.networking.fetcher import fetch_url
 from tiny_web_crawler.networking.validator import is_valid_url
 from tiny_web_crawler.networking.formatter import format_url
+from tiny_web_crawler.logging import get_logger, set_logging_level, INFO, DEBUG
 
 DEFAULT_SCHEME: str = 'http://'
+logger = get_logger()
 
 @dataclass
 class Spider:
@@ -59,9 +60,10 @@ class Spider:
         if self.internal_links_only and self.external_links_only:
             raise ValueError("Only one of internal_links_only and external_links_only can be set to True")
 
-    def verbose_print(self, content: str) -> None:
         if self.verbose:
-            print(content)
+            set_logging_level(DEBUG)
+        else:
+            set_logging_level(INFO)
 
     def save_results(self) -> None:
         """
@@ -79,14 +81,14 @@ class Spider:
             url (str): The URL to crawl.
         """
         if not is_valid_url(url):
-            self.verbose_print(Fore.RED + f"Invalid url to crawl: {url}")
+            logger.debug("Invalid url to crawl: %s", url)
             return
 
         if url in self.crawl_result:
-            self.verbose_print(Fore.YELLOW + f"URL already crawled: {url}")
+            logger.debug("URL already crawled: %s", url)
             return
 
-        self.verbose_print(Fore.GREEN + f"Crawling: {url}")
+        logger.debug("Crawling: %s", url)
         soup = fetch_url(url)
         if not soup:
             return
@@ -100,7 +102,7 @@ class Spider:
         for link in links:
             pretty_url = format_url(link['href'].lstrip(), url, self.scheme)
             if not is_valid_url(pretty_url):
-                self.verbose_print(Fore.RED + f"Invalid url: {pretty_url}")
+                logger.debug("Invalid url: %s", pretty_url)
                 continue
 
             if pretty_url in self.crawl_result[url]['urls']:
@@ -108,24 +110,24 @@ class Spider:
 
             if self.url_regex:
                 if not re.compile(self.url_regex).match(pretty_url):
-                    self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regex: {pretty_url}")
+                    logger.debug("Skipping: URL didn't match regex: %s", pretty_url)
                     continue
 
             if self.internal_links_only and self.root_netloc != urllib.parse.urlparse(pretty_url).netloc:
-                self.verbose_print(Fore.RED + f"Skipping: External link: {pretty_url}")
+                logger.debug("Skipping: External link: %s", pretty_url)
                 continue
 
             if self.external_links_only and self.root_netloc == urllib.parse.urlparse(pretty_url).netloc:
-                self.verbose_print(Fore.RED + f"Skipping: Internal link: {pretty_url}")
+                logger.debug("Skipping: Internal link: %s", pretty_url)
                 continue
 
             self.crawl_result[url]['urls'].append(pretty_url)
             self.crawl_set.add(pretty_url)
-            self.verbose_print(Fore.BLUE + f"Link found: {pretty_url}")
+            logger.debug("Link found: %s", pretty_url)
 
         if self.link_count < self.max_links:
             self.link_count += 1
-            self.verbose_print(Fore.GREEN + f"Links crawled: {self.link_count}")
+            logger.debug("Links crawled: %s", self.link_count)
 
     def start(self) -> Dict[str, Dict[str, List[str]]]:
         """
@@ -150,5 +152,5 @@ class Spider:
 
         if self.save_to_file:
             self.save_results()
-        self.verbose_print(Style.BRIGHT + Fore.MAGENTA + "Exiting....")
+        logger.debug("Exiting....")
         return self.crawl_result
