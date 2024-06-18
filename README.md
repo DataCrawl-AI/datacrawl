@@ -5,7 +5,7 @@
 | Name                                              |    Stmts |     Miss |   Cover |   Missing |
 |-------------------------------------------------- | -------: | -------: | ------: | --------: |
 | script.py                                         |        3 |        3 |      0% |       1-4 |
-| src/tiny\_web\_crawler/\_\_init\_\_.py            |        0 |        0 |    100% |           |
+| src/tiny\_web\_crawler/\_\_init\_\_.py            |        1 |        0 |    100% |           |
 | src/tiny\_web\_crawler/core/\_\_init\_\_.py       |        0 |        0 |    100% |           |
 | src/tiny\_web\_crawler/core/spider.py             |       97 |        0 |    100% |           |
 | src/tiny\_web\_crawler/logging.py                 |       21 |        0 |    100% |           |
@@ -24,7 +24,7 @@
 | tests/networking/test\_validator.py               |        4 |        0 |    100% |           |
 | tests/test\_crawler.py                            |      122 |        0 |    100% |           |
 | tests/utils.py                                    |        4 |        0 |    100% |           |
-|                                         **TOTAL** |  **380** |    **3** | **99%** |           |
+|                                         **TOTAL** |  **381** |    **3** | **99%** |           |
 
 
 ## Setup coverage badge
