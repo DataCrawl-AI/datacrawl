@@ -1,10 +1,11 @@
 import logging
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL, FATAL, NOTSET # pylint: disable=unused-import
 
-LOGGER_NAME: str = "tiny-web-crawler-logger"
+LOGGER_NAME: str = "tiny-web-crawler"
 DEFAULT_LOG_LEVEL = INFO
 
-logging.getLogger().setLevel(level=DEFAULT_LOG_LEVEL)
+logging.basicConfig(level=DEBUG)
+logging.getLogger(LOGGER_NAME).setLevel(level=DEFAULT_LOG_LEVEL)
 
 def get_logger() -> logging.Logger:
     return logging.getLogger(LOGGER_NAME)
