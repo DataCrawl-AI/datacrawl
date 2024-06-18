@@ -7,6 +7,7 @@ import re
 
 from typing import Dict, List, Optional, Set, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import urllib.parse
 from colorama import Fore, Style
 
 from tiny_web_crawler.networking.fetcher import fetch_url
@@ -31,9 +32,12 @@ class Spider:
         delay (float): request delay
         url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
         include_body (bool): Whether or not to include the crawled page's body in crawl_result (default: False)
+        internal_links_only (bool): Whether or not to crawl only internal links
+        external_links_only (bool): Whether or not to crawl only external links
     """
 
     root_url: str
+    root_netloc: str = field(init=False)
     max_links: int = 5
     save_to_file: Optional[str] = None
     max_workers: int = 1
@@ -42,9 +46,18 @@ class Spider:
     crawl_result: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
-    scheme: str = field(default=DEFAULT_SCHEME, init=False)
     url_regex: Optional[str] = None
     include_body: bool = False
+    internal_links_only: bool = False
+    external_links_only: bool = False
+
+    def __post_init__(self) -> None:
+        self.scheme = DEFAULT_SCHEME
+
+        self.root_netloc = urllib.parse.urlparse(self.root_url).netloc
+
+        if self.internal_links_only and self.external_links_only:
+            raise ValueError("Only one of internal_links_only and external_links_only can be set to True")
 
     def verbose_print(self, content: str) -> None:
         if self.verbose:
@@ -97,6 +110,14 @@ class Spider:
                 if not re.compile(self.url_regex).match(pretty_url):
                     self.verbose_print(Fore.YELLOW + f"Skipping: URL didn't match regex: {pretty_url}")
                     continue
+
+            if self.internal_links_only and self.root_netloc != urllib.parse.urlparse(pretty_url).netloc:
+                self.verbose_print(Fore.RED + f"Skipping: External link: {pretty_url}")
+                continue
+
+            if self.external_links_only and self.root_netloc == urllib.parse.urlparse(pretty_url).netloc:
+                self.verbose_print(Fore.RED + f"Skipping: Internal link: {pretty_url}")
+                continue
 
             self.crawl_result[url]['urls'].append(pretty_url)
             self.crawl_set.add(pretty_url)
