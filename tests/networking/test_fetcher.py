@@ -3,6 +3,7 @@ import responses
 import requests
 
 from tiny_web_crawler.networking.fetcher import fetch_url
+from tiny_web_crawler.logging import ERROR
 from tests.utils import setup_mock_response
 
 
@@ -21,18 +22,18 @@ def test_fetch_url() -> None:
 
 
 @responses.activate
-def test_fetch_url_connection_error(capsys) -> None: # type: ignore
+def test_fetch_url_connection_error(caplog) -> None: # type: ignore
 
-    # Fetch url whose response isn't mocked to raise ConnectionError
-    resp = fetch_url("http://connection.error")
+    with caplog.at_level(ERROR):
+        # Fetch url whose response isn't mocked to raise ConnectionError
+        resp = fetch_url("http://connection.error")
 
-    captured = capsys.readouterr()
-    assert "Connection error occurred:" in captured.out
+    assert "Connection error occurred:" in caplog.text
     assert resp is None
 
 
 @responses.activate
-def test_fetch_url_http_error(capsys) -> None: # type: ignore
+def test_fetch_url_http_error(caplog) -> None: # type: ignore
     error_codes = [403, 404, 408]
 
     for error_code in error_codes:
@@ -41,42 +42,41 @@ def test_fetch_url_http_error(capsys) -> None: # type: ignore
             body="<html><body><a href='http://http.error'>link</a></body></html>",
             status=error_code
             )
-        resp = fetch_url(f"http://http.error/{error_code}")
 
-        captured = capsys.readouterr()
+        with caplog.at_level(ERROR):
+            resp = fetch_url(f"http://http.error/{error_code}")
 
-        assert "HTTP error occurred:" in captured.out
+        assert "HTTP error occurred:" in caplog.text
         assert resp is None
 
 
 @responses.activate
-def test_fetch_url_timeout_error(capsys) -> None: # type: ignore
+def test_fetch_url_timeout_error(caplog) -> None: # type: ignore
     setup_mock_response(
         url="http://timeout.error",
         body=requests.exceptions.Timeout(),
         status=408
     )
 
+    with caplog.at_level(ERROR):
+        # Fetch url whose response isn't mocked to raise ConnectionError
+        resp = fetch_url("http://timeout.error")
 
-    # Fetch url whose response isn't mocked to raise ConnectionError
-    resp = fetch_url("http://timeout.error")
-
-    captured = capsys.readouterr()
-    assert "Timeout error occurred:" in captured.out
+    assert "Timeout error occurred:" in caplog.text
     assert resp is None
 
 
 @responses.activate
-def test_fetch_url_requests_exception(capsys) -> None: # type: ignore
+def test_fetch_url_requests_exception(caplog) -> None: # type: ignore
     setup_mock_response(
         url="http://requests.exception",
         body=requests.exceptions.RequestException(),
         status=404
     )
 
-    # Fetch url whose response isn't mocked to raise ConnectionError
-    resp = fetch_url("http://requests.exception")
+    with caplog.at_level(ERROR):
+        # Fetch url whose response isn't mocked to raise ConnectionError
+        resp = fetch_url("http://requests.exception")
 
-    captured = capsys.readouterr()
-    assert "Request error occurred:" in captured.out
+    assert "Request error occurred:" in caplog.text
     assert resp is None

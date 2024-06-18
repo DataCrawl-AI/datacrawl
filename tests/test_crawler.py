@@ -5,6 +5,7 @@ import responses
 import pytest
 
 from tiny_web_crawler.core.spider import Spider
+from tiny_web_crawler.logging import DEBUG
 from tests.utils import setup_mock_response
 
 @responses.activate
@@ -37,18 +38,18 @@ def test_crawl() -> None:
 
 
 @responses.activate
-def test_crawl_invalid_url(capsys) -> None:  # type: ignore
+def test_crawl_invalid_url(caplog) -> None:  # type: ignore
     spider = Spider("http://example.com")
 
-    spider.crawl("invalid_url")
+    with caplog.at_level(DEBUG):
+        spider.crawl("invalid_url")
 
-    captured = capsys.readouterr()
-    assert "Invalid url to crawl:" in captured.out
+    assert "Invalid url to crawl:" in caplog.text
     assert spider.crawl_result == {}
 
 
 @responses.activate
-def test_crawl_already_crawled_url(capsys) -> None:  # type: ignore
+def test_crawl_already_crawled_url(caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://example.com",
         body="<html><body><a href='http://example.com'>link</a></body></html>",
@@ -57,11 +58,11 @@ def test_crawl_already_crawled_url(capsys) -> None:  # type: ignore
 
     spider = Spider("http://example.com")
 
-    spider.crawl("http://example.com")
-    spider.crawl("http://example.com")
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://example.com")
+        spider.crawl("http://example.com")
 
-    captured = capsys.readouterr()
-    assert "URL already crawled:" in captured.out
+    assert "URL already crawled:" in caplog.text
     assert spider.crawl_result == {
         "http://example.com": {"urls": ["http://example.com"]}
     }
@@ -82,7 +83,7 @@ def test_crawl_unfetchable_url() -> None:
 
 
 @responses.activate
-def test_crawl_found_invalid_url(capsys) -> None:  # type: ignore
+def test_crawl_found_invalid_url(caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://example.com",
         body="<html><body><a href='^invalidurl^'>link</a></body></html>",
@@ -90,10 +91,11 @@ def test_crawl_found_invalid_url(capsys) -> None:  # type: ignore
     )
 
     spider = Spider("http://example.com")
-    spider.crawl("http://example.com")
 
-    captured = capsys.readouterr()
-    assert "Invalid url:" in captured.out
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://example.com")
+
+    assert "Invalid url:" in caplog.text
     assert spider.crawl_result == {"http://example.com": {"urls": []}}
 
 
@@ -189,7 +191,7 @@ def test_include_body() -> None:
 
 
 @responses.activate
-def test_internal_links_only(capsys) -> None: # type: ignore
+def test_internal_links_only(caplog) -> None: # type: ignore
     setup_mock_response(
         url="http://internal.com",
         body="<html><body><a href='http://internal.com/test'>link</a>"
@@ -198,15 +200,16 @@ def test_internal_links_only(capsys) -> None: # type: ignore
     )
 
     spider = Spider("http://internal.com", internal_links_only=True)
-    spider.crawl("http://internal.com")
 
-    captured = capsys.readouterr()
-    assert "Skipping: External link:" in captured.out
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://internal.com")
+
+    assert "Skipping: External link:" in caplog.text
     assert spider.crawl_result == {"http://internal.com": {"urls": ["http://internal.com/test"]}}
 
 
 @responses.activate
-def test_external_links_only(capsys) -> None: # type: ignore
+def test_external_links_only(caplog) -> None: # type: ignore
     setup_mock_response(
         url="http://internal.com",
         body="<html><body><a href='http://internal.com/test'>link</a>"
@@ -215,10 +218,11 @@ def test_external_links_only(capsys) -> None: # type: ignore
     )
 
     spider = Spider("http://internal.com", external_links_only=True)
-    spider.crawl("http://internal.com")
 
-    captured = capsys.readouterr()
-    assert "Skipping: Internal link:" in captured.out
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://internal.com")
+
+    assert "Skipping: Internal link:" in caplog.text
     assert spider.crawl_result == {"http://internal.com": {"urls": ["http://external.com/test"]}}
 
 
