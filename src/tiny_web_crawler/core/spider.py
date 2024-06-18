@@ -46,13 +46,14 @@ class Spider:
     crawl_result: Dict[str, Dict[str, Any]] = field(default_factory=dict)
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
-    scheme: str = field(default=DEFAULT_SCHEME, init=False)
     url_regex: Optional[str] = None
     include_body: bool = False
     internal_links_only: bool = False
     external_links_only: bool = False
 
     def __post_init__(self) -> None:
+        self.scheme = DEFAULT_SCHEME
+
         self.root_netloc = urllib.parse.urlparse(self.root_url).netloc
 
         if self.internal_links_only and self.external_links_only:
