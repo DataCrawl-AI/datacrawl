@@ -1,7 +1,8 @@
 import logging
 import responses
 
-from tiny_web_crawler.core.spider import Spider
+from tiny_web_crawler import Spider
+from tiny_web_crawler import GeneralSettings
 from tiny_web_crawler.logging import get_logger, set_logging_level, DEBUG, INFO, ERROR, LOGGER_NAME
 from tests.utils import setup_mock_response
 
@@ -29,11 +30,17 @@ def test_set_logging_level(caplog) -> None: # type: ignore
 def test_verbose_logging_level() -> None:
     logger = get_logger()
 
-    spider = Spider("http://example.com", verbose=True) # pylint: disable=unused-variable
+    spider = Spider( # pylint: disable=unused-variable
+        GeneralSettings("http://example.com",
+                        verbose=True)
+                        )
 
     assert logger.getEffectiveLevel() == DEBUG
 
-    spider = Spider("http://example.com", verbose=False) # pylint: disable=unused-variable
+    spider = Spider( # pylint: disable=unused-variable
+        GeneralSettings("http://example.com",
+                        verbose=False)
+                        )
 
     assert logger.getEffectiveLevel() == INFO
 
@@ -46,7 +53,10 @@ def test_verbose_true(caplog) -> None: # type: ignore
         status=200
     )
 
-    spider = Spider("http://example.com", verbose=True)
+    spider = Spider(
+        GeneralSettings("http://example.com",
+                        verbose=True)
+                        )
     spider.start()
 
     assert len(caplog.text) > 0
@@ -61,7 +71,7 @@ def test_verbose_false_no_errors(caplog) -> None: # type: ignore
         status=200
     )
 
-    spider = Spider("http://example.com", verbose=False)
+    spider = Spider(GeneralSettings("http://example.com", verbose=False))
     spider.start()
 
     assert len(caplog.text) == 0
@@ -75,7 +85,7 @@ def test_verbose_false_errors(caplog) -> None: # type: ignore
         status=200
     )
 
-    spider = Spider("http://example.com", verbose=False)
+    spider = Spider(GeneralSettings("http://example.com", verbose=False))
     spider.start()
 
     assert "DEBUG" not in caplog.text
