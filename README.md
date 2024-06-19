@@ -7,11 +7,12 @@
 | script.py                                         |        3 |        3 |      0% |       1-4 |
 | src/tiny\_web\_crawler/\_\_init\_\_.py            |        1 |        0 |    100% |           |
 | src/tiny\_web\_crawler/core/\_\_init\_\_.py       |        0 |        0 |    100% |           |
-| src/tiny\_web\_crawler/core/spider.py             |       97 |        0 |    100% |           |
+| src/tiny\_web\_crawler/core/spider.py             |      123 |        0 |    100% |           |
 | src/tiny\_web\_crawler/logging.py                 |       21 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/\_\_init\_\_.py |        0 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/fetcher.py      |       20 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/formatter.py    |       15 |        0 |    100% |           |
+| src/tiny\_web\_crawler/networking/robots\_txt.py  |       17 |        0 |    100% |           |
 | src/tiny\_web\_crawler/networking/validator.py    |        3 |        0 |    100% |           |
 | tests/\_\_init\_\_.py                             |        0 |        0 |    100% |           |
 | tests/core/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
@@ -20,11 +21,12 @@
 | tests/logging/test\_logging.py                    |       44 |        0 |    100% |           |
 | tests/networking/\_\_init\_\_.py                  |        0 |        0 |    100% |           |
 | tests/networking/test\_fetcher.py                 |       40 |        0 |    100% |           |
-| tests/networking/test\_formatter.py               |        7 |        0 |    100% |           |
+| tests/networking/test\_formatter.py               |        5 |        0 |    100% |           |
+| tests/networking/test\_robots\_txt.py             |       30 |        0 |    100% |           |
 | tests/networking/test\_validator.py               |        4 |        0 |    100% |           |
-| tests/test\_crawler.py                            |      122 |        0 |    100% |           |
+| tests/test\_crawler.py                            |      182 |        0 |    100% |           |
 | tests/utils.py                                    |        4 |        0 |    100% |           |
-|                                         **TOTAL** |  **381** |    **3** | **99%** |           |
+|                                         **TOTAL** |  **512** |    **3** | **99%** |           |
 
 
 ## Setup coverage badge
