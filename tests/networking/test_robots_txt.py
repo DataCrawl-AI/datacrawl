@@ -2,44 +2,23 @@ from unittest.mock import patch, MagicMock
 from io import BytesIO
 import urllib.robotparser
 
+import pytest
+
 from tiny_web_crawler.networking.robots_txt import get_robots_txt_url, is_robots_txt_allowed, setup_robots_txt_parser
 
-def test_get_robots_txt_url() -> None:
-    assert (
-        get_robots_txt_url("http://example")
-        == "http://example/robots.txt"
-    )
-
-    assert (
-        get_robots_txt_url("http://example/path")
-        == "http://example/robots.txt"
-    )
-
-    assert (
-        get_robots_txt_url("https://example/")
-        == "https://example/robots.txt"
-    )
-
-    assert (
-        get_robots_txt_url("http://example/path1/path2/path3/path4")
-        == "http://example/robots.txt"
-    )
-
-    assert (
-        get_robots_txt_url("http://example/path1/path2/path3/path4")
-        == "http://example/robots.txt"
-    )
-
-    assert (
-        get_robots_txt_url("http://example/path#fragment")
-        == "http://example/robots.txt"
-    )
-
-    assert (
-        get_robots_txt_url("http://example/path?query=test")
-        == "http://example/robots.txt"
-    )
-
+@pytest.mark.parametrize(
+    "url, expected",
+    [
+        ("http://example", "http://example/robots.txt"),
+        ("http://example/path", "http://example/robots.txt"),
+        ("https://example/", "https://example/robots.txt"),
+        ("http://example/path1/path2/path3/path4", "http://example/robots.txt"),
+        ("http://example/path#fragment", "http://example/robots.txt"),
+        ("http://example/path?query=test", "http://example/robots.txt"),
+    ]
+)
+def test_get_robots_txt_url(url: str, expected: str) -> None:
+    assert get_robots_txt_url(url) == expected
 
 
 @patch('urllib.request.urlopen')
