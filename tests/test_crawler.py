@@ -1,11 +1,13 @@
+from io import BytesIO
 from unittest.mock import MagicMock, mock_open, patch
+import urllib.error
 
 import responses
 
 import pytest
 
 from tiny_web_crawler.core.spider import Spider
-from tiny_web_crawler.logging import DEBUG
+from tiny_web_crawler.logging import DEBUG, WARNING
 from tests.utils import setup_mock_response
 
 @responses.activate
@@ -269,3 +271,160 @@ def test_start_with_save_to_file(
     ]
 
     mock_save_results.assert_called_once()
+
+
+@responses.activate
+@patch('urllib.request.urlopen')
+def test_respect_robots_txt(mock_urlopen, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://crawlable.com",
+        body="<html><body><a href='http://notcrawlable.com'>link</a></body></html>",
+        status=200
+    )
+    setup_mock_response(
+        url="http://notcrawlable.com",
+        body="<html><body><a href='http://crawlable.com'>link</a></body></html>",
+        status=200
+    )
+
+    mock_urlopen.side_effect = lambda url: (
+        BytesIO(b"User-agent: *\nAllow: /") if url == "http://crawlable.com/robots.txt" else
+        BytesIO(b"User-agent: *\nDisallow: /") if url == "http://notcrawlable.com/robots.txt" else
+        urllib.error.URLError(f"No mock for {url}"))
+
+    spider = Spider("http://crawlable.com", respect_robots_txt=True)
+
+    with caplog.at_level(DEBUG):
+        spider.start()
+
+    assert spider.crawl_result == {
+        "http://crawlable.com": {
+            "urls": ["http://notcrawlable.com"]
+        }
+    }
+
+    assert "Skipped: Url doesn't allow crawling:" in caplog.text
+
+    assert "http://notcrawlable.com/robots.txt" in spider.robots
+
+
+@responses.activate
+@patch('urllib.request.urlopen')
+def test_respect_robots_txt_allowed(mock_urlopen, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://crawlable.com",
+        body="<html><body><a href='http://crawlable.com'>link</a></body></html>",
+        status=200
+    )
+
+    mock_urlopen.side_effect = lambda url: (
+        BytesIO(b"User-agent: *\nAllow: /") if url == "http://crawlable.com/robots.txt" else
+        urllib.error.URLError(f"No mock for {url}"))
+
+    spider = Spider("http://crawlable.com", respect_robots_txt=True)
+
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://crawlable.com")
+
+    assert spider.crawl_result == {
+        "http://crawlable.com":{
+            "urls": ["http://crawlable.com"]
+        }
+    }
+
+
+
+@responses.activate
+@patch('urllib.request.urlopen')
+def test_respect_robots_txt_not_allowed(mock_urlopen, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://notcrawlable.com",
+        body="<html><body><a href='http://crawlable.com'>link</a></body></html>",
+        status=200
+    )
+
+    mock_urlopen.side_effect = lambda url: (
+        BytesIO(b"User-agent: *\nDisallow: /") if url == "http://notcrawlable.com/robots.txt" else
+        urllib.error.URLError(f"No mock for {url}"))
+
+    spider = Spider("http://notcrawlable.com", respect_robots_txt=True)
+
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://notcrawlable.com")
+
+    assert spider.crawl_result == {}
+
+    assert "Skipped: Url doesn't allow crawling:" in caplog.text
+
+    assert "http://notcrawlable.com/robots.txt" in spider.robots
+
+
+@responses.activate
+@patch('urllib.request.urlopen')
+def test_respect_robots_txt_disabled(mock_urlopen, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://crawlable.com",
+        body="<html><body><a href='http://notcrawlable.com'>link</a></body></html>",
+        status=200
+    )
+    setup_mock_response(
+        url="http://notcrawlable.com",
+        body="<html><body><a href='http://crawlable.com'>link</a></body></html>",
+        status=200
+    )
+
+    mock_urlopen.side_effect = lambda url: (
+        BytesIO(b"User-agent: *\nAllow: /") if url == "http://crawlable.com/robots.txt" else
+        BytesIO(b"User-agent: *\nDisallow: /") if url == "http://notcrawlable.com/robots.txt" else
+        urllib.error.URLError(f"No mock for {url}"))
+
+    with caplog.at_level(WARNING):
+        spider = Spider("http://crawlable.com", respect_robots_txt=False)
+
+    assert "Ignoring robots.txt files! You might be at risk of:" in caplog.text
+
+
+    with caplog.at_level(DEBUG):
+        spider.start()
+
+    assert spider.crawl_result == {
+        "http://crawlable.com": {
+            "urls": ["http://notcrawlable.com"]
+        },
+        "http://notcrawlable.com": {
+            "urls": ["http://crawlable.com"]
+        }
+    }
+
+    assert not "Skipped: Url doesn't allow crawling:" in caplog.text
+
+    assert "http://notcrawlable.com/robots.txt" not in spider.robots
+
+
+@responses.activate
+@patch('urllib.request.urlopen')
+@patch('time.sleep', return_value=None)
+def test_respect_robots_txt_crawl_delay(mock_sleep, mock_urlopen, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://crawlable.com",
+        body="<html><body><a href='http://notcrawlable.com'>link</a></body></html>",
+        status=200
+    )
+
+    mock_urlopen.side_effect = lambda url: (
+        BytesIO(b"User-agent: *\nAllow: /\ncrawl-delay: 1") if url == "http://crawlable.com/robots.txt" else
+        urllib.error.URLError(f"No mock for {url}"))
+
+    spider = Spider("http://crawlable.com", respect_robots_txt=True)
+
+    with caplog.at_level(DEBUG):
+        spider.crawl("http://crawlable.com")
+
+    assert mock_sleep.call_count == 1
+    mock_sleep.assert_called_with(1.0)
+
+    assert spider.crawl_result == {
+        "http://crawlable.com": {
+            "urls": ["http://notcrawlable.com"]
+        }
+    }
