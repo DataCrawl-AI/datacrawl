@@ -38,6 +38,7 @@ class Spider:
         include_body (bool): Whether or not to include the crawled page's body in crawl_result (default: False)
         internal_links_only (bool): Whether or not to crawl only internal links
         external_links_only (bool): Whether or not to crawl only external links
+        respect_robots_txt (bool): Whether or not to respect website's robots.txt files (defualt: True)
     """
 
     root_url: str
