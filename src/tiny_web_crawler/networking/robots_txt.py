@@ -46,7 +46,7 @@ def setup_robots_txt_parser(robots_txt_url: str) -> urllib.robotparser.RobotFile
         robot_txt_url (str): The URL to the robots.txt file.
 
     Returns:
-        bool: True if the URL can be crawled, False otherwise.
+        urllib.robotparser.RobotFileParser: The RobotFileParser object with the url already read.
     """
 
     robot_parser = urllib.robotparser.RobotFileParser()
