@@ -27,19 +27,9 @@ class Spider:
     A simple web crawler class.
 
     Attributes:
-        root_url (str): The root URL to start crawling from.
-        max_links (int): The maximum number of links to crawl.
-        crawl_result (Dict[str, Dict[str, Any]): The dictionary storing the crawl results.
-        crawl_set (Set[str]): A set of URLs to be crawled.
-        link_count (int): The current count of crawled links.
-        save_to_file (Optional[str]): The file path to save the crawl results.
-        max_workers (int): Max count of concurrent workers
-        delay (float): request delay
-        url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
-        include_body (bool): Whether or not to include the crawled page's body in crawl_result (default: False)
-        internal_links_only (bool): Whether or not to crawl only internal links
-        external_links_only (bool): Whether or not to crawl only external links
-        respect_robots_txt (bool): Whether or not to respect website's robots.txt files (defualt: True)
+        general_settings (GeneralSettings): The GeneralSettings object with the settings for the Spider object
+        crawl_settings (CrawlSettings): The CrawlSettings object with the settings to use when crawling.\
+            If this isn't passed the default crawl settings are used.
     """
 
     general_settings: GeneralSettings
