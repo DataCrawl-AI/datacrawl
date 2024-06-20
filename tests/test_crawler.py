@@ -263,7 +263,7 @@ def test_external_links_only(caplog) -> None: # type: ignore
 @responses.activate
 def test_external_and_internal_links_only() -> None:
     with pytest.raises(ValueError):
-        Spider(SpiderSettings("http://example.com",
+        Spider(SpiderSettings(root_url="http://example.com",
                               internal_links_only=True,
                               external_links_only=True)
                               )
@@ -485,3 +485,8 @@ def test_respect_robots_txt_crawl_delay(mock_sleep, mock_urlopen, caplog) -> Non
             "urls": ["http://notcrawlable.com"]
         }
     }
+
+
+def test_crawl_no_root_url() -> None:
+    with pytest.raises(ValueError):
+        Spider(SpiderSettings(verbose=False))
