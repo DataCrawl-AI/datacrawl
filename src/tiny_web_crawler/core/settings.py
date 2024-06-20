@@ -16,7 +16,7 @@ class GeneralSettings:
         verbose (bool): Whether or not to print debug messages (Default: True)
     """
 
-    root_url: str
+    root_url: str = ""
     max_links: int = 5
     save_to_file: Optional[str] = None
     max_workers: int = 1
@@ -41,6 +41,15 @@ class CrawlSettings:
     external_links_only: bool = False
     respect_robots_txt: bool = True
 
+@dataclass
+class SpiderSettings(GeneralSettings, CrawlSettings):
+    """
+    A simple dataclass that stores all the settings for the Spider class
+    """
+
     def __post_init__(self) -> None:
+        if self.root_url == "":
+            raise ValueError("\"root_url\" argument is required")
+
         if self.internal_links_only and self.external_links_only:
             raise ValueError("Only one of internal_links_only and external_links_only can be set to True")
