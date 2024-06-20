@@ -11,7 +11,7 @@ import urllib.parse
 import urllib.robotparser
 import requests
 
-from tiny_web_crawler.core.settings import SpiderSettings
+from tiny_web_crawler.core.spider_settings import SpiderSettings
 from tiny_web_crawler.networking.fetcher import fetch_url
 from tiny_web_crawler.networking.validator import is_valid_url
 from tiny_web_crawler.networking.formatter import format_url
