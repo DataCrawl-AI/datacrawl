@@ -30,21 +30,21 @@ pip install tiny-web-crawler
 
 ```python
 from tiny_web_crawler import Spider
-from tiny_web_crawler import GeneralSettings
+from tiny_web_crawler import SpiderSettings
 
-general_settings = GeneralSettings(
+settings = SpiderSettings(
     root_url = 'http://github.com',
     max_links = 2
 )
 
-crawl = Spider(general_settings)
-crawl.start()
+spider = Spider(settings)
+spider.start()
 
 
 # Set workers and delay (default: delay is 0.5 sec and verbose is True)
 # If you do not want delay, set delay=0
 
-general_settings = GeneralSettings(
+settings = SpiderSettings(
     root_url = 'https://github.com',
     max_links = 5,
     max_workers = 5,
@@ -52,8 +52,8 @@ general_settings = GeneralSettings(
     verbose = False
 )
 
-crawl = Spider(general_settings)
-crawl.start()
+spider = Spider(settings)
+spider.start()
 
 ```
 
