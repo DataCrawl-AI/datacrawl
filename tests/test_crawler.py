@@ -7,7 +7,7 @@ import responses
 import pytest
 
 from tiny_web_crawler import Spider
-from tiny_web_crawler import GeneralSettings, CrawlSettings
+from tiny_web_crawler import SpiderSettings
 from tiny_web_crawler.logging import DEBUG, WARNING
 from tests.utils import setup_mock_response
 
@@ -25,7 +25,8 @@ def test_crawl() -> None:
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com", 10)
+        SpiderSettings(root_url="http://example.com",
+                       max_links=10)
         )
     spider.crawl("http://example.com")
 
@@ -45,7 +46,7 @@ def test_crawl() -> None:
 @responses.activate
 def test_crawl_invalid_url(caplog) -> None:  # type: ignore
     spider = Spider(
-        GeneralSettings("http://example.com")
+        SpiderSettings(root_url="http://example.com")
         )
 
     with caplog.at_level(DEBUG):
@@ -64,7 +65,7 @@ def test_crawl_already_crawled_url(caplog) -> None:  # type: ignore
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com")
+        SpiderSettings(root_url="http://example.com")
         )
 
     with caplog.at_level(DEBUG):
@@ -86,7 +87,7 @@ def test_crawl_unfetchable_url() -> None:
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com")
+        SpiderSettings(root_url="http://example.com")
         )
 
     spider.crawl("http://example.com")
@@ -102,7 +103,7 @@ def test_crawl_found_invalid_url(caplog) -> None:  # type: ignore
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com")
+        SpiderSettings(root_url="http://example.com")
         )
 
     with caplog.at_level(DEBUG):
@@ -122,7 +123,7 @@ def test_crawl_found_duplicate_url() -> None:
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com")
+        SpiderSettings(root_url="http://example.com")
         )
     spider.crawl("http://example.com")
 
@@ -138,7 +139,7 @@ def test_crawl_no_urls_in_page() -> None:
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com")
+        SpiderSettings(root_url="http://example.com")
         )
     spider.crawl("http://example.com")
 
@@ -148,9 +149,9 @@ def test_crawl_no_urls_in_page() -> None:
 @responses.activate
 def test_save_results() -> None:
     spider = Spider(
-        GeneralSettings("http://example.com",
-                        max_links=10,
-                        save_to_file="out.json")
+        SpiderSettings(root_url="http://example.com",
+                       max_links=10,
+                       save_to_file="out.json")
             )
     spider.crawl_result = {"http://example.com": {"urls": ["http://example.com/test"]}}
 
@@ -173,8 +174,8 @@ def test_url_regex() -> None:
     regex = r"http://example\.com/[0-9]+"
 
     spider = Spider(
-        GeneralSettings("http://example.com"),
-        CrawlSettings(url_regex=regex)
+        SpiderSettings(root_url="http://example.com",
+                       url_regex=regex)
         )
     spider.start()
 
@@ -202,8 +203,8 @@ def test_include_body() -> None:
     )
 
     spider = Spider(
-        GeneralSettings("http://example.com"),
-        CrawlSettings(include_body=True)
+        SpiderSettings(root_url="http://example.com",
+                       include_body=True)
         )
     spider.start()
 
@@ -227,8 +228,8 @@ def test_internal_links_only(caplog) -> None: # type: ignore
     )
 
     spider = Spider(
-        GeneralSettings("http://internal.com"),
-        CrawlSettings(internal_links_only=True)
+        SpiderSettings(root_url="http://internal.com",
+                       internal_links_only=True)
         )
 
     with caplog.at_level(DEBUG):
@@ -248,8 +249,8 @@ def test_external_links_only(caplog) -> None: # type: ignore
     )
 
     spider = Spider(
-        GeneralSettings("http://internal.com"),
-        CrawlSettings(external_links_only=True)
+        SpiderSettings(root_url="http://internal.com",
+                       external_links_only=True)
         )
 
     with caplog.at_level(DEBUG):
@@ -262,14 +263,18 @@ def test_external_links_only(caplog) -> None: # type: ignore
 @responses.activate
 def test_external_and_internal_links_only() -> None:
     with pytest.raises(ValueError):
-        Spider(GeneralSettings("http://example.com"), CrawlSettings(internal_links_only=True, external_links_only=True))
+        Spider(SpiderSettings("http://example.com",
+                              internal_links_only=True,
+                              external_links_only=True)
+                              )
 
 
 @patch.object(Spider, "crawl")
 @patch.object(Spider, "save_results")
 def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
     spider = Spider(
-        GeneralSettings("http://example.com", 10)
+        SpiderSettings(root_url="http://example.com",
+                       max_links=10)
         )
     mock_crawl.side_effect = lambda url: spider.crawl_result.update(
         {url: {"urls": ["http://example.com/test"]}}
@@ -291,9 +296,9 @@ def test_start_with_save_to_file(
     mock_save_results: MagicMock, mock_crawl: MagicMock
 ) -> None:
     spider = Spider(
-        GeneralSettings("http://example.com",
-                        max_links=10,
-                        save_to_file="file.txt")
+        SpiderSettings(root_url="http://example.com",
+                       max_links=10,
+                       save_to_file="file.txt")
             )
     mock_crawl.side_effect = lambda url: spider.crawl_result.update(
         {url: {"urls": ["http://example.com/test"]}}
@@ -330,8 +335,8 @@ def test_respect_robots_txt(mock_urlopen, caplog) -> None: # type: ignore
         urllib.error.URLError(f"No mock for {url}"))
 
     spider = Spider(
-        GeneralSettings("http://crawlable.com"),
-        CrawlSettings(respect_robots_txt=True)
+        SpiderSettings(root_url="http://crawlable.com",
+                       respect_robots_txt=True)
         )
 
     with caplog.at_level(DEBUG):
@@ -362,8 +367,8 @@ def test_respect_robots_txt_allowed(mock_urlopen, caplog) -> None: # type: ignor
         urllib.error.URLError(f"No mock for {url}"))
 
     spider = Spider(
-        GeneralSettings("http://crawlable.com"),
-        CrawlSettings(respect_robots_txt=True)
+        SpiderSettings(root_url="http://crawlable.com",
+                       respect_robots_txt=True)
         )
 
     with caplog.at_level(DEBUG):
@@ -391,8 +396,8 @@ def test_respect_robots_txt_not_allowed(mock_urlopen, caplog) -> None: # type: i
         urllib.error.URLError(f"No mock for {url}"))
 
     spider = Spider(
-        GeneralSettings("http://notcrawlable.com"),
-        CrawlSettings(respect_robots_txt=True)
+        SpiderSettings(root_url="http://notcrawlable.com",
+                       respect_robots_txt=True)
         )
 
     with caplog.at_level(DEBUG):
@@ -426,8 +431,8 @@ def test_respect_robots_txt_disabled(mock_urlopen, caplog) -> None: # type: igno
 
     with caplog.at_level(WARNING):
         spider = Spider(
-            GeneralSettings("http://crawlable.com"),
-            CrawlSettings(respect_robots_txt=False)
+            SpiderSettings(root_url="http://crawlable.com",
+                           respect_robots_txt=False)
             )
 
     assert "Ignoring robots.txt files! You might be at risk of:" in caplog.text
@@ -465,8 +470,8 @@ def test_respect_robots_txt_crawl_delay(mock_sleep, mock_urlopen, caplog) -> Non
         urllib.error.URLError(f"No mock for {url}"))
 
     spider = Spider(
-        GeneralSettings("http://crawlable.com"),
-        CrawlSettings(respect_robots_txt=True)
+        SpiderSettings(root_url="http://crawlable.com",
+                       respect_robots_txt=True)
         )
 
     with caplog.at_level(DEBUG):
