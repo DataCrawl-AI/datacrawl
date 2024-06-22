@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tiny-web-crawler"
-version = "0.3.0"
+version = "0.4.0-beta"
 description = "A simple and efficient web crawler in Python."
 authors = ["Indrajith Indraprastham <indr4jith@gmail.com>"]
 license = "GPL-3.0-or-later"
