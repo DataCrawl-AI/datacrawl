@@ -82,9 +82,10 @@ def test_fetch_url_requests_exception(caplog) -> None: # type: ignore
     assert "Request error occurred:" in caplog.text
     assert resp is None
 
+
 @patch("time.sleep")
 @responses.activate
-def test_fetch_url_transient_error_retry(mock_sleep, caplog) -> None: # type: ignore
+def test_fetch_url_transient_error_retry_5(mock_sleep, caplog) -> None: # type: ignore
     setup_mock_response(
         url="http://transient.error",
         body="<html><body><a href='http://transient.error'>link</a></body></html>",
@@ -107,6 +108,34 @@ def test_fetch_url_transient_error_retry(mock_sleep, caplog) -> None: # type: ig
     assert actual_delays == expected_delays
 
     assert "Transient HTTP error occurred:" in caplog.text
+
+
+@patch("time.sleep")
+@responses.activate
+def test_fetch_url_transient_error_retry_10(mock_sleep, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://transient.error",
+        body="<html><body><a href='http://transient.error'>link</a></body></html>",
+        status=503
+    )
+
+    max_retry_attempts = 10
+
+    with caplog.at_level(ERROR):
+        resp = fetch_url("http://transient.error", max_retry_attempts)
+
+    assert resp is None
+
+    # Assert url was fetched once then retried x ammount of times
+    assert len(responses.calls) == max_retry_attempts + 1
+
+    # Assert sleep time grew with every request
+    expected_delays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    actual_delays = [call.args[0] for call in mock_sleep.call_args_list]
+    assert actual_delays == expected_delays
+
+    assert "Transient HTTP error occurred:" in caplog.text
+
 
 @patch("time.sleep")
 @responses.activate
