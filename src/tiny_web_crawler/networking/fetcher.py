@@ -7,13 +7,12 @@ from bs4 import BeautifulSoup
 from tiny_web_crawler.logging import get_logger
 
 MAX_RETRIES = 5
+TRANSIENT_ERRORS = [408, 502, 503, 504]
 
 logger = get_logger()
 
 def is_transient_error(status_code: int) -> bool:
-    transient_errors = [408, 502, 503, 504]
-
-    return status_code in transient_errors
+    return status_code in TRANSIENT_ERRORS
 
 def fetch_url(url: str, retries: int = MAX_RETRIES) -> Optional[BeautifulSoup]:
     try:
