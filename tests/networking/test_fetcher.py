@@ -34,7 +34,7 @@ def test_fetch_url_connection_error(caplog) -> None: # type: ignore
 
 @responses.activate
 def test_fetch_url_http_error(caplog) -> None: # type: ignore
-    error_codes = [403, 404, 408]
+    error_codes = [403, 404, 412]
 
     for error_code in error_codes:
         setup_mock_response(
