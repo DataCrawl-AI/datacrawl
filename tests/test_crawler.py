@@ -8,7 +8,7 @@ import pytest
 
 from tiny_web_crawler import Spider
 from tiny_web_crawler import SpiderSettings
-from tiny_web_crawler.logging import DEBUG, WARNING
+from tiny_web_crawler.logging import DEBUG, WARNING, ERROR
 from tests.utils import setup_mock_response
 
 @responses.activate
@@ -490,3 +490,60 @@ def test_respect_robots_txt_crawl_delay(mock_sleep, mock_urlopen, caplog) -> Non
 def test_crawl_no_root_url() -> None:
     with pytest.raises(ValueError):
         Spider(SpiderSettings(verbose=False))
+
+
+@patch("time.sleep")
+@responses.activate
+def test_crawl_url_transient_retry(mock_sleep, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://transient.error",
+        body="<html><body><a href='http://transient.error'>link</a></body></html>",
+        status=503
+    )
+
+    spider = Spider(
+        SpiderSettings(root_url="http://transient.error",
+                       respect_robots_txt=False)
+        )
+
+    with caplog.at_level(ERROR):
+        spider.crawl("http://transient.error")
+
+    assert spider.crawl_result == {}
+
+    assert len(responses.calls) == 6
+
+    expected_delays = [1, 2, 3, 4, 5]
+    actual_delays = [call.args[0] for call in mock_sleep.call_args_list]
+    assert actual_delays == expected_delays
+
+    assert "Transient HTTP error occurred:" in caplog.text
+
+
+@patch("time.sleep")
+@responses.activate
+def test_crawl_url_transient_retry_custom_retry_amount(mock_sleep, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://transient.error",
+        body="<html><body><a href='http://transient.error'>link</a></body></html>",
+        status=503
+    )
+
+    spider = Spider(
+        SpiderSettings(root_url="http://transient.error",
+                       max_retry_attempts=10,
+                       respect_robots_txt=False)
+        )
+
+    with caplog.at_level(ERROR):
+        spider.crawl("http://transient.error")
+
+    assert spider.crawl_result == {}
+
+    assert len(responses.calls) == 11
+
+    expected_delays = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    actual_delays = [call.args[0] for call in mock_sleep.call_args_list]
+    assert actual_delays == expected_delays
+
+    assert "Transient HTTP error occurred:" in caplog.text
