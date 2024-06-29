@@ -1,3 +1,4 @@
+from unittest.mock import patch
 
 import responses
 import requests
@@ -80,3 +81,55 @@ def test_fetch_url_requests_exception(caplog) -> None: # type: ignore
 
     assert "Request error occurred:" in caplog.text
     assert resp is None
+
+@patch("time.sleep")
+@responses.activate
+def test_fetch_url_transient_error_retry(mock_sleep, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://transient.error",
+        body="<html><body><a href='http://transient.error'>link</a></body></html>",
+        status=503
+    )
+
+    with caplog.at_level(ERROR):
+        resp = fetch_url("http://transient.error")
+
+    assert resp is None
+
+    # Assert url was fetched 5 times
+    assert len(responses.calls) == 5
+
+    # Assert sleep time grew with every request
+    expected_delays = [1, 2, 3, 4]
+    actual_delays = [call.args[0] for call in mock_sleep.call_args_list]
+    assert actual_delays == expected_delays
+
+    assert "Transient HTTP error occurred:" in caplog.text
+
+@patch("time.sleep")
+@responses.activate
+def test_fetch_url_transient_error_retry_success(mock_sleep, caplog) -> None: # type: ignore
+    setup_mock_response(
+        url="http://transient.error",
+        body="<html><body><a href='http://transient.error'>link</a></body></html>",
+        status=503
+    )
+    setup_mock_response(
+        url="http://transient.error",
+        body="<html><body><a href='http://transient.error'>link</a></body></html>",
+        status=200
+    )
+
+    with caplog.at_level(ERROR):
+        resp = fetch_url("http://transient.error")
+
+    assert resp is not None
+    assert resp.text == "link"
+
+    # Assert url was fetched 2 times
+    assert len(responses.calls) == 2
+
+    # Assert time.sleep was called
+    mock_sleep.assert_called_once_with(1)
+
+    assert "Transient HTTP error occurred:" in caplog.text
