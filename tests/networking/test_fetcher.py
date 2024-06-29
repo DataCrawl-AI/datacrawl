@@ -16,7 +16,7 @@ def test_fetch_url() -> None:
         status=200
     )
 
-    resp = fetch_url("http://example.com")
+    resp = fetch_url("http://example.com", 1)
 
     assert resp is not None
     assert resp.text == "link"
@@ -27,7 +27,7 @@ def test_fetch_url_connection_error(caplog) -> None: # type: ignore
 
     with caplog.at_level(ERROR):
         # Fetch url whose response isn't mocked to raise ConnectionError
-        resp = fetch_url("http://connection.error")
+        resp = fetch_url("http://connection.error", 1)
 
     assert "Connection error occurred:" in caplog.text
     assert resp is None
@@ -45,7 +45,7 @@ def test_fetch_url_http_error(caplog) -> None: # type: ignore
             )
 
         with caplog.at_level(ERROR):
-            resp = fetch_url(f"http://http.error/{error_code}")
+            resp = fetch_url(f"http://http.error/{error_code}", 1)
 
         assert "HTTP error occurred:" in caplog.text
         assert resp is None
@@ -61,7 +61,7 @@ def test_fetch_url_timeout_error(caplog) -> None: # type: ignore
 
     with caplog.at_level(ERROR):
         # Fetch url whose response isn't mocked to raise ConnectionError
-        resp = fetch_url("http://timeout.error")
+        resp = fetch_url("http://timeout.error", 1)
 
     assert "Timeout error occurred:" in caplog.text
     assert resp is None
@@ -77,7 +77,7 @@ def test_fetch_url_requests_exception(caplog) -> None: # type: ignore
 
     with caplog.at_level(ERROR):
         # Fetch url whose response isn't mocked to raise ConnectionError
-        resp = fetch_url("http://requests.exception")
+        resp = fetch_url("http://requests.exception", 1)
 
     assert "Request error occurred:" in caplog.text
     assert resp is None
@@ -91,16 +91,18 @@ def test_fetch_url_transient_error_retry(mock_sleep, caplog) -> None: # type: ig
         status=503
     )
 
+    max_retry_attempts = 5
+
     with caplog.at_level(ERROR):
-        resp = fetch_url("http://transient.error")
+        resp = fetch_url("http://transient.error", max_retry_attempts)
 
     assert resp is None
 
-    # Assert url was fetched 5 times
-    assert len(responses.calls) == 5
+    # Assert url was fetched once then retried x ammount of times
+    assert len(responses.calls) == max_retry_attempts + 1
 
     # Assert sleep time grew with every request
-    expected_delays = [1, 2, 3, 4]
+    expected_delays = [1, 2, 3, 4, 5]
     actual_delays = [call.args[0] for call in mock_sleep.call_args_list]
     assert actual_delays == expected_delays
 
@@ -120,8 +122,10 @@ def test_fetch_url_transient_error_retry_success(mock_sleep, caplog) -> None: # 
         status=200
     )
 
+    max_retry_attempts = 1
+
     with caplog.at_level(ERROR):
-        resp = fetch_url("http://transient.error")
+        resp = fetch_url("http://transient.error", max_retry_attempts)
 
     assert resp is not None
     assert resp.text == "link"
