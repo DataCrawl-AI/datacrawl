@@ -85,7 +85,7 @@ class Spider:
             return
 
         logger.debug("Crawling: %s", url)
-        soup = fetch_url(url)
+        soup = fetch_url(url, retries=self.settings.max_retry_attempts)
         if not soup:
             return
 
