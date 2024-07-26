@@ -1,3 +1,4 @@
+![cover](cover.png)
 # Tiny Web Crawler
 
 [![CI](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/indrajithi/tiny-web-crawler/actions/workflows/ci.yml)
