@@ -1,25 +1,31 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import json
-import time
 import re
-
-from typing import Dict, List, Set, Any
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 import urllib.parse
 import urllib.robotparser
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
+from logging import DEBUG, INFO
+from typing import Any, Dict, List, Set
+
 import requests
 
 from tiny_web_crawler.core.spider_settings import SpiderSettings
+from tiny_web_crawler.logger import get_logger, set_logging_level
 from tiny_web_crawler.networking.fetcher import fetch_url
-from tiny_web_crawler.networking.validator import is_valid_url
 from tiny_web_crawler.networking.formatter import format_url
-from tiny_web_crawler.networking.robots_txt import is_robots_txt_allowed, setup_robots_txt_parser, get_robots_txt_url
-from tiny_web_crawler.logging import get_logger, set_logging_level, INFO, DEBUG
+from tiny_web_crawler.networking.robots_txt import (
+    get_robots_txt_url,
+    is_robots_txt_allowed,
+    setup_robots_txt_parser,
+)
+from tiny_web_crawler.networking.validator import is_valid_url
 
-DEFAULT_SCHEME: str = 'http://'
+DEFAULT_SCHEME: str = "http://"
 logger = get_logger()
+
 
 @dataclass
 class Spider:
@@ -27,7 +33,8 @@ class Spider:
     A simple web crawler class.
 
     Attributes:
-        settings (SpiderSettings): The SpiderSettings object with the settings for the Spider object
+        settings (SpiderSettings):
+        The SpiderSettings object with the settings for the Spider object
     """
 
     settings: SpiderSettings
@@ -50,11 +57,11 @@ class Spider:
 
         if not self.settings.respect_robots_txt:
             logger.warning(
-                "Ignoring robots.txt files! You might be at risk of:\n"+
-                "Agent/IP bans;\n"+
-                "Disrupted operation;\n"+
-                "Increased suspicion from anti-bot services;\n"+
-                "Potential legal action;"
+                "Ignoring robots.txt files! You might be at risk of:\n"
+                + "Agent/IP bans;\n"
+                + "Disrupted operation;\n"
+                + "Increased suspicion from anti-bot services;\n"
+                + "Potential legal action;"
             )
 
     def save_results(self) -> None:
@@ -62,7 +69,7 @@ class Spider:
         Saves the crawl results into a JSON file.
         """
         if self.settings.save_to_file:
-            with open(self.settings.save_to_file, 'w', encoding='utf-8') as file:
+            with open(self.settings.save_to_file, "w", encoding="utf-8") as file:
                 json.dump(self.crawl_result, file, indent=4)
 
     def crawl(self, url: str) -> None:
@@ -89,19 +96,19 @@ class Spider:
         if not soup:
             return
 
-        links = soup.body.find_all('a', href=True) if soup.body else []
-        self.crawl_result[url] = {'urls': []}
+        links = soup.body.find_all("a", href=True) if soup.body else []
+        self.crawl_result[url] = {"urls": []}
 
         if self.settings.include_body:
-            self.crawl_result[url]['body'] = str(soup)
+            self.crawl_result[url]["body"] = str(soup)
 
         for link in links:
-            pretty_url = format_url(link['href'].lstrip(), url, self.scheme)
+            pretty_url = format_url(link["href"].lstrip(), url, self.scheme)
 
             if self._should_skip_link(pretty_url, url):
                 continue
 
-            self.crawl_result[url]['urls'].append(pretty_url)
+            self.crawl_result[url]["urls"].append(pretty_url)
             self.crawl_set.add(pretty_url)
             logger.debug("Link found: %s", pretty_url)
 
@@ -114,18 +121,24 @@ class Spider:
             logger.debug("Invalid url: %s", pretty_url)
             return True
 
-        if pretty_url in self.crawl_result[url]['urls']:
+        if pretty_url in self.crawl_result[url]["urls"]:
             return True
 
         if self.settings.url_regex and not re.compile(self.settings.url_regex).match(pretty_url):
             logger.debug("Skipping: URL didn't match regex: %s", pretty_url)
             return True
 
-        if self.settings.internal_links_only and self.root_netloc != urllib.parse.urlparse(pretty_url).netloc:
+        if (
+            self.settings.internal_links_only
+            and self.root_netloc != urllib.parse.urlparse(pretty_url).netloc
+        ):
             logger.debug("Skipping: External link: %s", pretty_url)
             return True
 
-        if self.settings.external_links_only and self.root_netloc == urllib.parse.urlparse(pretty_url).netloc:
+        if (
+            self.settings.external_links_only
+            and self.root_netloc == urllib.parse.urlparse(pretty_url).netloc
+        ):
             logger.debug("Skipping: Internal link: %s", pretty_url)
             return True
 

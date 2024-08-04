@@ -1,7 +1,9 @@
 import urllib.parse
+
 import validators
 
-DEFAULT_SCHEME: str = 'http://'
+DEFAULT_SCHEME: str = "http://"
+
 
 def format_url(url: str, base_url: str, scheme: str = DEFAULT_SCHEME) -> str:
     """
@@ -16,7 +18,7 @@ def format_url(url: str, base_url: str, scheme: str = DEFAULT_SCHEME) -> str:
         str: The formatted URL.
     """
     parsed_url = urllib.parse.urlparse(url)
-    base_url = base_url.rstrip('/')
+    base_url = base_url.rstrip("/")
 
     if parsed_url.scheme:
         scheme = parsed_url.scheme
@@ -25,7 +27,7 @@ def format_url(url: str, base_url: str, scheme: str = DEFAULT_SCHEME) -> str:
         if validators.url(DEFAULT_SCHEME + parsed_url.path):
             return DEFAULT_SCHEME + parsed_url.path
 
-        if parsed_url.path.startswith('/'):
+        if parsed_url.path.startswith("/"):
             return base_url + parsed_url.path
 
         return f"{base_url}/{parsed_url.path}"

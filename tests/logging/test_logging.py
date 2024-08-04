@@ -1,9 +1,15 @@
 import logging
-import responses
+from logging import DEBUG, ERROR, INFO
 
-from tiny_web_crawler import Spider
-from tiny_web_crawler import SpiderSettings
-from tiny_web_crawler.logging import get_logger, set_logging_level, DEBUG, INFO, ERROR, LOGGER_NAME
+import pytest
+import responses
+from tiny_web_crawler import Spider, SpiderSettings
+from tiny_web_crawler.logger import (
+    LOGGER_NAME,
+    get_logger,
+    set_logging_level,
+)
+
 from tests.utils import setup_mock_response
 
 
@@ -14,7 +20,7 @@ def test_get_logger() -> None:
     assert logger.name == LOGGER_NAME
 
 
-def test_set_logging_level(caplog) -> None: # type: ignore
+def test_set_logging_level(caplog: pytest.LogCaptureFixture) -> None:
     logger = get_logger()
 
     set_logging_level(ERROR)
@@ -30,33 +36,20 @@ def test_set_logging_level(caplog) -> None: # type: ignore
 def test_verbose_logging_level() -> None:
     logger = get_logger()
 
-    Spider(
-        SpiderSettings(root_url="http://example.com",
-                       verbose=True)
-                        )
+    Spider(SpiderSettings(root_url="http://example.com", verbose=True))
 
     assert logger.getEffectiveLevel() == DEBUG
 
-    Spider(
-        SpiderSettings(root_url="http://example.com",
-                       verbose=False)
-                        )
+    Spider(SpiderSettings(root_url="http://example.com", verbose=False))
 
     assert logger.getEffectiveLevel() == INFO
 
 
 @responses.activate
-def test_verbose_true(caplog) -> None: # type: ignore
-    setup_mock_response(
-        url="http://example.com",
-        body="<html><body></body></html>",
-        status=200
-    )
+def test_verbose_true(caplog) -> None:  # type: ignore
+    setup_mock_response(url="http://example.com", body="<html><body></body></html>", status=200)
 
-    spider = Spider(
-        SpiderSettings(root_url="http://example.com",
-                       verbose=True)
-                        )
+    spider = Spider(SpiderSettings(root_url="http://example.com", verbose=True))
     spider.start()
 
     assert len(caplog.text) > 0
@@ -64,12 +57,8 @@ def test_verbose_true(caplog) -> None: # type: ignore
 
 
 @responses.activate
-def test_verbose_false_no_errors(caplog) -> None: # type: ignore
-    setup_mock_response(
-        url="http://example.com",
-        body="<html><body></body></html>",
-        status=200
-    )
+def test_verbose_false_no_errors(caplog) -> None:  # type: ignore
+    setup_mock_response(url="http://example.com", body="<html><body></body></html>", status=200)
 
     spider = Spider(SpiderSettings(root_url="http://example.com", verbose=False))
     spider.start()
@@ -78,15 +67,14 @@ def test_verbose_false_no_errors(caplog) -> None: # type: ignore
 
 
 @responses.activate
-def test_verbose_false_errors(caplog) -> None: # type: ignore
+def test_verbose_false_errors(caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://example.com",
         body="<html><body><a href='invalidurl'>link</a>",
-        status=200
+        status=200,
     )
 
-    spider = Spider(
-        SpiderSettings(root_url="http://example.com", verbose=False))
+    spider = Spider(SpiderSettings(root_url="http://example.com", verbose=False))
     spider.start()
 
     assert "DEBUG" not in caplog.text

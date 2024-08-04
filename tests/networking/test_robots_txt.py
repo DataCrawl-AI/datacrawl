@@ -1,10 +1,14 @@
-from unittest.mock import patch, MagicMock
-from io import BytesIO
 import urllib.robotparser
+from io import BytesIO
+from unittest.mock import MagicMock, patch
 
 import pytest
+from tiny_web_crawler.networking.robots_txt import (
+    get_robots_txt_url,
+    is_robots_txt_allowed,
+    setup_robots_txt_parser,
+)
 
-from tiny_web_crawler.networking.robots_txt import get_robots_txt_url, is_robots_txt_allowed, setup_robots_txt_parser
 
 @pytest.mark.parametrize(
     "url, expected",
@@ -15,13 +19,13 @@ from tiny_web_crawler.networking.robots_txt import get_robots_txt_url, is_robots
         ("http://example/path1/path2/path3/path4", "http://example/robots.txt"),
         ("http://example/path#fragment", "http://example/robots.txt"),
         ("http://example/path?query=test", "http://example/robots.txt"),
-    ]
+    ],
 )
 def test_get_robots_txt_url(url: str, expected: str) -> None:
     assert get_robots_txt_url(url) == expected
 
 
-@patch('urllib.request.urlopen')
+@patch("urllib.request.urlopen")
 def test_is_robots_txt_allowed_true(mock_urlopen: MagicMock) -> None:
     # Mock the response content of robots.txt
     mock_response = b"User-agent: *\nAllow: /"
@@ -30,7 +34,7 @@ def test_is_robots_txt_allowed_true(mock_urlopen: MagicMock) -> None:
     assert is_robots_txt_allowed("http://example.com")
 
 
-@patch('urllib.request.urlopen')
+@patch("urllib.request.urlopen")
 def test_is_robots_txt_allowed_false(mock_urlopen: MagicMock) -> None:
     # Mock the response content of robots.txt
     mock_response = b"User-agent: *\nDisallow: /"
@@ -39,7 +43,7 @@ def test_is_robots_txt_allowed_false(mock_urlopen: MagicMock) -> None:
     assert not is_robots_txt_allowed("http://example.com")
 
 
-@patch('urllib.request.urlopen')
+@patch("urllib.request.urlopen")
 def test_is_robots_txt_allowed_mixed(mock_urlopen: MagicMock) -> None:
     # Mock the response content of robots.txt
     mock_response = b"User-agent: *\nDisallow: /private"

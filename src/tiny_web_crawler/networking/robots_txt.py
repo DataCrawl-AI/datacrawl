@@ -1,7 +1,9 @@
 import urllib.parse
 import urllib.robotparser
 from typing import Optional
+
 import requests
+
 
 def get_robots_txt_url(url: str) -> str:
     """
@@ -16,10 +18,12 @@ def get_robots_txt_url(url: str) -> str:
 
     parsed_url = urllib.parse.urlparse(url)
 
-    return parsed_url.scheme + "://"+ parsed_url.netloc + "/robots.txt"
+    return parsed_url.scheme + "://" + parsed_url.netloc + "/robots.txt"
 
 
-def is_robots_txt_allowed(url: str, robot_parser: Optional[urllib.robotparser.RobotFileParser] = None) -> bool:
+def is_robots_txt_allowed(
+    url: str, robot_parser: Optional[urllib.robotparser.RobotFileParser] = None
+) -> bool:
     """
     Checks if the provided URL can be crawled, according to its corresponding robots.txt file
 
@@ -46,7 +50,8 @@ def setup_robots_txt_parser(robots_txt_url: str) -> urllib.robotparser.RobotFile
         robot_txt_url (str): The URL to the robots.txt file.
 
     Returns:
-        urllib.robotparser.RobotFileParser: The RobotFileParser object with the url already read.
+        urllib.robotparser.RobotFileParser:
+        The RobotFileParser object with the url already read.
     """
 
     robot_parser = urllib.robotparser.RobotFileParser()

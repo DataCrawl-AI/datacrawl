@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 from typing import Optional
 
-from dataclasses import dataclass
 
 @dataclass
 class GeneralSettings:
@@ -23,24 +23,37 @@ class GeneralSettings:
     delay: float = 0.5
     verbose: bool = True
 
+
 @dataclass
 class CrawlSettings:
     """
     A simple dataclass to store crawl settings for the Spider class
 
     Attributes:
-        url_regex (Optional[str]): A regular expression against which urls will be matched before crawling
-        include_body (bool): Whether or not to include the crawled page's body in crawl_result (Default: False)
-        internal_links_only (bool): Whether or not to crawl only internal links (Default: False)
-        external_links_only (bool): Whether or not to crawl only external links (Default: False)
-        respect_robots_txt (bool): Whether or not to respect website's robots.txt files (defualt: True)
+        url_regex (Optional[str]):
+            A regular expression against which urls will be matched before crawling
+
+        include_body (bool):
+            Whether or not to include the crawled page's body in crawl_result
+            (Default: False)
+
+        internal_links_only (bool):
+            Whether or not to crawl only internal links (Default: False)
+
+        external_links_only (bool):
+            Whether or not to crawl only external links (Default: False)
+
+        respect_robots_txt (bool):
+            Whether or not to respect website's robots.txt files (default: True)
     """
+
     url_regex: Optional[str] = None
     include_body: bool = False
     internal_links_only: bool = False
     external_links_only: bool = False
     respect_robots_txt: bool = True
     max_retry_attempts: int = 5
+
 
 @dataclass
 class SpiderSettings(GeneralSettings, CrawlSettings):
@@ -50,7 +63,10 @@ class SpiderSettings(GeneralSettings, CrawlSettings):
 
     def __post_init__(self) -> None:
         if self.root_url == "":
-            raise ValueError("\"root_url\" argument is required")
+            raise ValueError('"root_url" argument is required')
 
         if self.internal_links_only and self.external_links_only:
-            raise ValueError("Only one of internal_links_only and external_links_only can be set to True")
+
+            raise ValueError(
+                "Only one of internal_links_only and external_links_only can be set to True"
+            )

@@ -1,4 +1,5 @@
 import asyncio
+from logging import ERROR
 from unittest.mock import patch
 
 import pytest
@@ -7,7 +8,6 @@ import responses
 from aiohttp import ClientConnectionError, ClientError
 from aioresponses import aioresponses
 from bs4 import BeautifulSoup
-from tiny_web_crawler.logging import ERROR
 from tiny_web_crawler.networking.fetcher import fetch_url, fetch_url_async
 
 from tests.utils import setup_mock_response
@@ -25,7 +25,7 @@ async def test_fetch_url_async_success() -> None:
 
         assert result is not None
         assert isinstance(result, BeautifulSoup)
-        assert result.find('a').text == "link"
+        assert result.find("a").text == "link"
 
 
 @pytest.mark.asyncio
@@ -38,6 +38,7 @@ async def test_fetch_url_async_http_error() -> None:
         result = await fetch_url_async(url, retries=1)
 
         assert result is None
+
 
 @pytest.mark.asyncio
 async def test_fetch_url_async_transient_error_retry() -> None:
@@ -52,7 +53,8 @@ async def test_fetch_url_async_transient_error_retry() -> None:
 
         assert result is not None
         assert isinstance(result, BeautifulSoup)
-        assert result.find('a').text == "link"
+        assert result.find("a").text == "link"
+
 
 @pytest.mark.asyncio
 async def test_fetch_url_async_connection_error() -> None:
@@ -65,6 +67,7 @@ async def test_fetch_url_async_connection_error() -> None:
 
         assert result is None
 
+
 @pytest.mark.asyncio
 async def test_fetch_url_async_timeout_error() -> None:
     url = "http://example.com"
@@ -75,6 +78,7 @@ async def test_fetch_url_async_timeout_error() -> None:
         result = await fetch_url_async(url, retries=1)
 
         assert result is None
+
 
 @pytest.mark.asyncio
 async def test_fetch_url_async_request_exception() -> None:
@@ -87,12 +91,13 @@ async def test_fetch_url_async_request_exception() -> None:
 
         assert result is None
 
+
 @responses.activate
 def test_fetch_url() -> None:
     setup_mock_response(
         url="http://example.com",
         body="<html><body><a href='http://example.com'>link</a></body></html>",
-        status=200
+        status=200,
     )
 
     resp = fetch_url("http://example.com", 1)
@@ -102,8 +107,7 @@ def test_fetch_url() -> None:
 
 
 @responses.activate
-def test_fetch_url_connection_error(caplog) -> None: # type: ignore
-
+def test_fetch_url_connection_error(caplog) -> None:  # type: ignore
     with caplog.at_level(ERROR):
         # Fetch url whose response isn't mocked to raise ConnectionError
         resp = fetch_url("http://connection.error", 1)
@@ -113,15 +117,15 @@ def test_fetch_url_connection_error(caplog) -> None: # type: ignore
 
 
 @responses.activate
-def test_fetch_url_http_error(caplog) -> None: # type: ignore
+def test_fetch_url_http_error(caplog) -> None:  # type: ignore
     error_codes = [403, 404, 412]
 
     for error_code in error_codes:
         setup_mock_response(
             url=f"http://http.error/{error_code}",
             body="<html><body><a href='http://http.error'>link</a></body></html>",
-            status=error_code
-            )
+            status=error_code,
+        )
 
         with caplog.at_level(ERROR):
             resp = fetch_url(f"http://http.error/{error_code}", 1)
@@ -131,12 +135,8 @@ def test_fetch_url_http_error(caplog) -> None: # type: ignore
 
 
 @responses.activate
-def test_fetch_url_timeout_error(caplog) -> None: # type: ignore
-    setup_mock_response(
-        url="http://timeout.error",
-        body=requests.exceptions.Timeout(),
-        status=408
-    )
+def test_fetch_url_timeout_error(caplog) -> None:  # type: ignore
+    setup_mock_response(url="http://timeout.error", body=requests.exceptions.Timeout(), status=408)
 
     with caplog.at_level(ERROR):
         # Fetch url whose response isn't mocked to raise ConnectionError
@@ -147,11 +147,11 @@ def test_fetch_url_timeout_error(caplog) -> None: # type: ignore
 
 
 @responses.activate
-def test_fetch_url_requests_exception(caplog) -> None: # type: ignore
+def test_fetch_url_requests_exception(caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://requests.exception",
         body=requests.exceptions.RequestException(),
-        status=404
+        status=404,
     )
 
     with caplog.at_level(ERROR):
@@ -164,11 +164,11 @@ def test_fetch_url_requests_exception(caplog) -> None: # type: ignore
 
 @patch("time.sleep")
 @responses.activate
-def test_fetch_url_transient_error_retry_5(mock_sleep, caplog) -> None: # type: ignore
+def test_fetch_url_transient_error_retry_5(mock_sleep, caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://transient.error",
         body="<html><body><a href='http://transient.error'>link</a></body></html>",
-        status=503
+        status=503,
     )
 
     max_retry_attempts = 5
@@ -191,11 +191,11 @@ def test_fetch_url_transient_error_retry_5(mock_sleep, caplog) -> None: # type: 
 
 @patch("time.sleep")
 @responses.activate
-def test_fetch_url_transient_error_retry_10(mock_sleep, caplog) -> None: # type: ignore
+def test_fetch_url_transient_error_retry_10(mock_sleep, caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://transient.error",
         body="<html><body><a href='http://transient.error'>link</a></body></html>",
-        status=503
+        status=503,
     )
 
     max_retry_attempts = 10
@@ -218,16 +218,16 @@ def test_fetch_url_transient_error_retry_10(mock_sleep, caplog) -> None: # type:
 
 @patch("time.sleep")
 @responses.activate
-def test_fetch_url_transient_error_retry_success(mock_sleep, caplog) -> None: # type: ignore
+def test_fetch_url_transient_error_retry_success(mock_sleep, caplog) -> None:  # type: ignore
     setup_mock_response(
         url="http://transient.error",
         body="<html><body><a href='http://transient.error'>link</a></body></html>",
-        status=503
+        status=503,
     )
     setup_mock_response(
         url="http://transient.error",
         body="<html><body><a href='http://transient.error'>link</a></body></html>",
-        status=200
+        status=200,
     )
 
     max_retry_attempts = 1
