@@ -1,12 +1,91 @@
+import asyncio
 from unittest.mock import patch
 
-import responses
+import pytest
 import requests
-
-from tiny_web_crawler.networking.fetcher import fetch_url
+import responses
+from aiohttp import ClientConnectionError, ClientError
+from aioresponses import aioresponses
+from bs4 import BeautifulSoup
 from tiny_web_crawler.logging import ERROR
+from tiny_web_crawler.networking.fetcher import fetch_url, fetch_url_async
+
 from tests.utils import setup_mock_response
 
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_success() -> None:
+    url = "http://example.com"
+    html_content = "<html><body><a href='http://example.com'>link</a></body></html>"
+
+    with aioresponses() as m:
+        m.get(url, status=200, body=html_content)
+
+        result = await fetch_url_async(url, retries=1)
+
+        assert result is not None
+        assert isinstance(result, BeautifulSoup)
+        assert result.find('a').text == "link"
+
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_http_error() -> None:
+    url = "http://example.com"
+
+    with aioresponses() as m:
+        m.get(url, status=404)
+
+        result = await fetch_url_async(url, retries=1)
+
+        assert result is None
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_transient_error_retry() -> None:
+    url = "http://example.com"
+    html_content = "<html><body><a href='http://example.com'>link</a></body></html>"
+
+    with aioresponses() as m:
+        m.get(url, status=503)
+        m.get(url, status=200, body=html_content)
+
+        result = await fetch_url_async(url, retries=2)
+
+        assert result is not None
+        assert isinstance(result, BeautifulSoup)
+        assert result.find('a').text == "link"
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_connection_error() -> None:
+    url = "http://example.com"
+
+    with aioresponses() as m:
+        m.get(url, exception=ClientConnectionError())
+
+        result = await fetch_url_async(url, retries=1)
+
+        assert result is None
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_timeout_error() -> None:
+    url = "http://example.com"
+
+    with aioresponses() as m:
+        m.get(url, exception=asyncio.TimeoutError())
+
+        result = await fetch_url_async(url, retries=1)
+
+        assert result is None
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_request_exception() -> None:
+    url = "http://example.com"
+
+    with aioresponses() as m:
+        m.get(url, exception=ClientError())
+
+        result = await fetch_url_async(url, retries=1)
+
+        assert result is None
 
 @responses.activate
 def test_fetch_url() -> None:

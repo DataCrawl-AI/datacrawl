@@ -30,14 +30,14 @@ def test_set_logging_level(caplog) -> None: # type: ignore
 def test_verbose_logging_level() -> None:
     logger = get_logger()
 
-    spider = Spider( # pylint: disable=unused-variable
+    Spider(
         SpiderSettings(root_url="http://example.com",
                        verbose=True)
                         )
 
     assert logger.getEffectiveLevel() == DEBUG
 
-    spider = Spider( # pylint: disable=unused-variable
+    Spider(
         SpiderSettings(root_url="http://example.com",
                        verbose=False)
                         )
