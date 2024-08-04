@@ -24,14 +24,14 @@ A simple and efficient web crawler for Python.
 Install using pip:
 
 ```sh
-pip install tiny-web-crawler
+pip install datacrawl
 ```
 
 ## Usage
 
 ```python
-from tiny_web_crawler import Spider
-from tiny_web_crawler import SpiderSettings
+from datacrawl import Spider
+from datacrawl import SpiderSettings
 
 settings = SpiderSettings(
     root_url = 'http://github.com',

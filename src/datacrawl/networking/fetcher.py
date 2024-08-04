@@ -6,7 +6,7 @@ import aiohttp
 import requests
 from bs4 import BeautifulSoup
 
-from tiny_web_crawler.logger import get_logger
+from datacrawl.logger import get_logger
 
 TRANSIENT_ERRORS = [408, 502, 503, 504]
 

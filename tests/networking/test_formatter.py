@@ -1,5 +1,5 @@
 import pytest
-from tiny_web_crawler.networking.formatter import DEFAULT_SCHEME, format_url
+from datacrawl.networking.formatter import DEFAULT_SCHEME, format_url
 
 
 @pytest.mark.parametrize(

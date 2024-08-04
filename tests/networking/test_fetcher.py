@@ -8,7 +8,7 @@ import responses
 from aiohttp import ClientConnectionError, ClientError
 from aioresponses import aioresponses
 from bs4 import BeautifulSoup
-from tiny_web_crawler.networking.fetcher import fetch_url, fetch_url_async
+from datacrawl.networking.fetcher import fetch_url, fetch_url_async
 
 from tests.utils import setup_mock_response
 

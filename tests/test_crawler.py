@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 import responses
-from tiny_web_crawler import Spider, SpiderSettings
+from datacrawl import Spider, SpiderSettings
 
 from tests.utils import setup_mock_response
 
@@ -23,16 +23,23 @@ def test_crawl() -> None:
         status=200,
     )
 
-    spider = Spider(SpiderSettings(root_url="http://example.com", max_links=10))
-    spider.crawl("http://example.com")
+    # Mock urllib.request.urlopen to avoid real network calls
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
 
-    assert "http://example.com" in spider.crawl_result
-    assert spider.crawl_result["http://example.com"]["urls"] == ["http://example.com/test"]
+        spider = Spider(SpiderSettings(root_url="http://example.com", max_links=10))
+        spider.crawl("http://example.com")
 
-    spider.crawl("http://example.com/test")
+        assert "http://example.com" in spider.crawl_result
+        assert spider.crawl_result["http://example.com"]["urls"] == ["http://example.com/test"]
 
-    assert "http://example.com/test" in spider.crawl_result
-    assert spider.crawl_result["http://example.com/test"]["urls"] == ["http://example.com"]
+        spider.crawl("http://example.com/test")
+
+        assert "http://example.com/test" in spider.crawl_result
+        assert spider.crawl_result["http://example.com/test"]["urls"] == ["http://example.com"]
 
 
 @responses.activate
@@ -56,9 +63,15 @@ def test_crawl_already_crawled_url(caplog) -> None:  # type: ignore
 
     spider = Spider(SpiderSettings(root_url="http://example.com"))
 
-    with caplog.at_level(DEBUG):
-        spider.crawl("http://example.com")
-        spider.crawl("http://example.com")
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        with caplog.at_level(DEBUG):
+            spider.crawl("http://example.com")
+            spider.crawl("http://example.com")
 
     assert "URL already crawled:" in caplog.text
     assert spider.crawl_result == {"http://example.com": {"urls": ["http://example.com"]}}
@@ -74,7 +87,14 @@ def test_crawl_unfetchable_url() -> None:
 
     spider = Spider(SpiderSettings(root_url="http://example.com"))
 
-    spider.crawl("http://example.com")
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 404
+        mock_urlopen.return_value = mock_response
+
+        spider.crawl("http://example.com")
+
     assert spider.crawl_result == {}
 
 
@@ -88,8 +108,14 @@ def test_crawl_found_invalid_url(caplog) -> None:  # type: ignore
 
     spider = Spider(SpiderSettings(root_url="http://example.com"))
 
-    with caplog.at_level(DEBUG):
-        spider.crawl("http://example.com")
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        with caplog.at_level(DEBUG):
+            spider.crawl("http://example.com")
 
     assert "Invalid url:" in caplog.text
     assert spider.crawl_result == {"http://example.com": {"urls": []}}
@@ -105,7 +131,14 @@ def test_crawl_found_duplicate_url() -> None:
     )
 
     spider = Spider(SpiderSettings(root_url="http://example.com"))
-    spider.crawl("http://example.com")
+
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        spider.crawl("http://example.com")
 
     assert spider.crawl_result == {"http://example.com": {"urls": ["http://duplicate.com"]}}
 
@@ -115,7 +148,14 @@ def test_crawl_no_urls_in_page() -> None:
     setup_mock_response(url="http://example.com", body="<html><body></body></html>", status=200)
 
     spider = Spider(SpiderSettings(root_url="http://example.com"))
-    spider.crawl("http://example.com")
+
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        spider.crawl("http://example.com")
 
     assert spider.crawl_result == {"http://example.com": {"urls": []}}
 
@@ -146,10 +186,16 @@ def test_url_regex() -> None:
     regex = r"http://example\.com/[0-9]+"
 
     spider = Spider(SpiderSettings(root_url="http://example.com", url_regex=regex))
-    spider.start()
+
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        spider.start()
 
     assert spider.crawl_result["http://example.com"]["urls"] == ["http://example.com/123"]
-
     assert "http://example.com/test" not in spider.crawl_result["http://example.com"]["urls"]
 
 
@@ -167,7 +213,14 @@ def test_include_body() -> None:
     )
 
     spider = Spider(SpiderSettings(root_url="http://example.com", include_body=True))
-    spider.start()
+
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        spider.start()
 
     assert (
         spider.crawl_result["http://example.com"]["body"]
@@ -190,8 +243,14 @@ def test_internal_links_only(caplog) -> None:  # type: ignore
 
     spider = Spider(SpiderSettings(root_url="http://internal.com", internal_links_only=True))
 
-    with caplog.at_level(DEBUG):
-        spider.crawl("http://internal.com")
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        with caplog.at_level(DEBUG):
+            spider.crawl("http://internal.com")
 
     assert "Skipping: External link:" in caplog.text
     assert spider.crawl_result == {"http://internal.com": {"urls": ["http://internal.com/test"]}}
@@ -208,8 +267,14 @@ def test_external_links_only(caplog) -> None:  # type: ignore
 
     spider = Spider(SpiderSettings(root_url="http://internal.com", external_links_only=True))
 
-    with caplog.at_level(DEBUG):
-        spider.crawl("http://internal.com")
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b""
+        mock_response.status = 200
+        mock_urlopen.return_value = mock_response
+
+        with caplog.at_level(DEBUG):
+            spider.crawl("http://internal.com")
 
     assert "Skipping: Internal link:" in caplog.text
     assert spider.crawl_result == {"http://internal.com": {"urls": ["http://external.com/test"]}}

@@ -3,7 +3,7 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
-from tiny_web_crawler.networking.robots_txt import (
+from datacrawl.networking.robots_txt import (
     get_robots_txt_url,
     is_robots_txt_allowed,
     setup_robots_txt_parser,
@@ -55,12 +55,19 @@ def test_is_robots_txt_allowed_mixed(mock_urlopen: MagicMock) -> None:
     assert not is_robots_txt_allowed("http://example.com/private")
 
 
-def test_is_robots_txt_allowed_no_robots_txt() -> None:
+@patch("urllib.request.urlopen")
+def test_is_robots_txt_allowed_no_robots_txt(mock_urlopen: MagicMock) -> None:
     # Check that websites with no robots.txt are set as crawlable
+    mock_response = b""
+    mock_urlopen.return_value = BytesIO(mock_response)
+
     assert is_robots_txt_allowed("http://example.com")
 
 
-def test_setup_robots_txt_parser() -> None:
+@patch("urllib.request.urlopen")
+def test_setup_robots_txt_parser(mock_urlopen: MagicMock) -> None:
+    mock_response = b"User-agent: *\nDisallow: /private"
+    mock_urlopen.return_value = BytesIO(mock_response)
     robot_parser = setup_robots_txt_parser("http://example.com")
 
     assert isinstance(robot_parser, urllib.robotparser.RobotFileParser)

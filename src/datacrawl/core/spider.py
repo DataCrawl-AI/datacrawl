@@ -12,16 +12,16 @@ from typing import Any, Dict, List, Set
 
 import requests
 
-from tiny_web_crawler.core.spider_settings import SpiderSettings
-from tiny_web_crawler.logger import get_logger, set_logging_level
-from tiny_web_crawler.networking.fetcher import fetch_url
-from tiny_web_crawler.networking.formatter import format_url
-from tiny_web_crawler.networking.robots_txt import (
+from datacrawl.core.spider_settings import SpiderSettings
+from datacrawl.logger import get_logger, set_logging_level
+from datacrawl.networking.fetcher import fetch_url
+from datacrawl.networking.formatter import format_url
+from datacrawl.networking.robots_txt import (
     get_robots_txt_url,
     is_robots_txt_allowed,
     setup_robots_txt_parser,
 )
-from tiny_web_crawler.networking.validator import is_valid_url
+from datacrawl.networking.validator import is_valid_url
 
 DEFAULT_SCHEME: str = "http://"
 logger = get_logger()

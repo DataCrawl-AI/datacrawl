@@ -1,4 +1,4 @@
-from tiny_web_crawler.networking.validator import is_valid_url
+from datacrawl.networking.validator import is_valid_url
 
 
 def test_is_valid_url() -> None:

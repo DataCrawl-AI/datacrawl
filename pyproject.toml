@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "tiny-web-crawler"
-version = "0.5.0"
+name = "datacrawl"
+version = "0.6.0"
 description = "A simple and efficient web crawler in Python."
 authors = ["Indrajith Indraprastham <indr4jith@gmail.com>"]
 license = "GPL-3.0-or-later"
 readme = "README.md"
-homepage = "http://github.com/indrajithi/tiny-web-crawler"
-repository = "http://github.com/indrajithi/tiny-web-crawler"
-documentation = "http://github.com/indrajithi/tiny-web-crawler"
+homepage = "http://github.com/DataCrawl-AI/datacrawl"
+repository = "http://github.com/DataCrawl-AI/datacrawl"
+documentation = "http://github.com/DataCrawl-AI/datacrawl"
 packages = [
-    { include = "tiny_web_crawler", from = "src" }
+    { include = "datacrawl", from = "src" }
 ]
 
 [tool.poetry.scripts]
