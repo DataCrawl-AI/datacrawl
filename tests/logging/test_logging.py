@@ -3,7 +3,7 @@ from logging import DEBUG, ERROR, INFO
 
 import pytest
 import responses
-from datacrawl import Spider, SpiderSettings
+from datacrawl import CrawlSettings, Datacrawl
 from datacrawl.logger import (
     LOGGER_NAME,
     get_logger,
@@ -36,11 +36,11 @@ def test_set_logging_level(caplog: pytest.LogCaptureFixture) -> None:
 def test_verbose_logging_level() -> None:
     logger = get_logger()
 
-    Spider(SpiderSettings(root_url="http://example.com", verbose=True))
+    Datacrawl(CrawlSettings(root_url="http://example.com", verbose=True))
 
     assert logger.getEffectiveLevel() == DEBUG
 
-    Spider(SpiderSettings(root_url="http://example.com", verbose=False))
+    Datacrawl(CrawlSettings(root_url="http://example.com", verbose=False))
 
     assert logger.getEffectiveLevel() == INFO
 
@@ -49,7 +49,7 @@ def test_verbose_logging_level() -> None:
 def test_verbose_true(caplog: pytest.LogCaptureFixture) -> None:
     setup_mock_response(url="http://example.com", body="<html><body></body></html>", status=200)
 
-    spider = Spider(SpiderSettings(root_url="http://example.com", verbose=True))
+    spider = Datacrawl(CrawlSettings(root_url="http://example.com", verbose=True))
     spider.start()
 
     assert len(caplog.text) > 0
@@ -60,7 +60,7 @@ def test_verbose_true(caplog: pytest.LogCaptureFixture) -> None:
 def test_verbose_false_no_errors(caplog: pytest.LogCaptureFixture) -> None:
     setup_mock_response(url="http://example.com", body="<html><body></body></html>", status=200)
 
-    spider = Spider(SpiderSettings(root_url="http://example.com", verbose=False))
+    spider = Datacrawl(CrawlSettings(root_url="http://example.com", verbose=False))
     spider.start()
 
     assert len(caplog.text) == 0

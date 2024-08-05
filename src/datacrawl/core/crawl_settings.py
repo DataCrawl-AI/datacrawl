@@ -5,7 +5,7 @@ from typing import Optional
 @dataclass
 class GeneralSettings:
     """
-    A simple dataclass to store general settings for the Spider class
+    A simple dataclass to store general settings for the Datacrawl class
 
     Attributes:
         root_url (str): The root URL to start crawling from.
@@ -25,9 +25,9 @@ class GeneralSettings:
 
 
 @dataclass
-class CrawlSettings:
+class DataCrawlSettings:
     """
-    A simple dataclass to store crawl settings for the Spider class
+    A simple dataclass to store crawl settings for the Datacrawl class
 
     Attributes:
         url_regex (Optional[str]):
@@ -56,9 +56,9 @@ class CrawlSettings:
 
 
 @dataclass
-class SpiderSettings(GeneralSettings, CrawlSettings):
+class CrawlSettings(GeneralSettings, DataCrawlSettings):
     """
-    A simple dataclass that stores all the settings for the Spider class
+    A simple dataclass that stores all the settings for the Datacrawl class
     """
 
     def __post_init__(self) -> None:

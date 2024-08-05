@@ -1,4 +1,4 @@
-from datacrawl.core.spider import Spider
-from datacrawl.core.spider_settings import SpiderSettings
+from datacrawl.core.crawl_settings import CrawlSettings
+from datacrawl.core.spider import Datacrawl
 
-__all__ = ["Spider", "SpiderSettings"]
+__all__ = ["Datacrawl", "CrawlSettings"]

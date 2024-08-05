@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 import responses
-from datacrawl import Spider, SpiderSettings
+from datacrawl import CrawlSettings, Datacrawl
 from pytest import LogCaptureFixture
 
 from tests.conftest import root_url
@@ -26,7 +26,7 @@ def test_crawl(
 
     mock_urlopen.side_effect = lambda url: mock_response
 
-    spider = Spider(SpiderSettings(root_url=root_url, max_links=10))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, max_links=10))
     spider.crawl(root_url)
 
     assert root_url in spider.crawl_result
@@ -40,7 +40,7 @@ def test_crawl(
 
 @responses.activate
 def test_crawl_invalid_url(mock_urlopen: MagicMock, caplog: LogCaptureFixture) -> None:
-    spider = Spider(SpiderSettings(root_url=root_url))
+    spider = Datacrawl(CrawlSettings(root_url=root_url))
 
     with caplog.at_level(DEBUG):
         spider.crawl("invalid_url")
@@ -58,7 +58,7 @@ def test_crawl_already_crawled_url(
 ) -> None:
     setup_responses(root_url, f"<html><body><a href='{root_url}'>link</a></body></html>", 200)
 
-    spider = Spider(SpiderSettings(root_url=root_url))
+    spider = Datacrawl(CrawlSettings(root_url=root_url))
     mock_urlopen.side_effect = lambda url: mock_response
 
     with caplog.at_level(DEBUG):
@@ -77,7 +77,7 @@ def test_crawl_unfetchable_url(
 ) -> None:
     setup_responses(root_url, f"<html><body><a href='{root_url}'>link</a></body></html>", 404)
 
-    spider = Spider(SpiderSettings(root_url=root_url))
+    spider = Datacrawl(CrawlSettings(root_url=root_url))
     mock_response.status = 404
     mock_urlopen.side_effect = lambda url: mock_response
 
@@ -94,7 +94,7 @@ def test_crawl_found_invalid_url(
 ) -> None:
     setup_responses(root_url, "<html><body><a href='^invalidurl^'>link</a></body></html>", 200)
 
-    spider = Spider(SpiderSettings(root_url=root_url))
+    spider = Datacrawl(CrawlSettings(root_url=root_url))
     mock_urlopen.side_effect = lambda url: mock_response
 
     with caplog.at_level(DEBUG):
@@ -117,7 +117,7 @@ def test_crawl_found_duplicate_url(
         200,
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url))
+    spider = Datacrawl(CrawlSettings(root_url=root_url))
     mock_urlopen.side_effect = lambda url: mock_response
 
     spider.crawl(root_url)
@@ -132,7 +132,7 @@ def test_crawl_no_urls_in_page(
 ) -> None:
     setup_responses(root_url, "<html><body></body></html>", 200)
 
-    spider = Spider(SpiderSettings(root_url=root_url))
+    spider = Datacrawl(CrawlSettings(root_url=root_url))
     mock_urlopen.side_effect = lambda url: mock_response
 
     spider.crawl(root_url)
@@ -141,7 +141,7 @@ def test_crawl_no_urls_in_page(
 
 @responses.activate
 def test_save_results() -> None:
-    spider = Spider(SpiderSettings(root_url=root_url, max_links=10, save_to_file="out.json"))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, max_links=10, save_to_file="out.json"))
     spider.crawl_result = {root_url: {"urls": [f"{root_url}/test"]}}
 
     with patch("builtins.open", mock_open()) as mocked_file:
@@ -164,7 +164,7 @@ def test_url_regex(
 
     regex = rf"{root_url}/[0-9]+"
 
-    spider = Spider(SpiderSettings(root_url=root_url, url_regex=regex))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, url_regex=regex))
     mock_urlopen.side_effect = lambda url: mock_response
 
     spider.start()
@@ -181,7 +181,7 @@ def test_include_body(
     setup_responses(root_url, f"<html><body><a href='{root_url}/test'>link</a></body></html>", 200)
     setup_responses(f"{root_url}/test", "<html><body><h>This is a header</h></body></html>", 200)
 
-    spider = Spider(SpiderSettings(root_url=root_url, include_body=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, include_body=True))
     mock_urlopen.side_effect = lambda url: mock_response
 
     spider.start()
@@ -209,7 +209,7 @@ def test_internal_links_only(
         200,
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, internal_links_only=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, internal_links_only=True))
     mock_urlopen.side_effect = lambda url: mock_response
 
     with caplog.at_level(DEBUG):
@@ -233,7 +233,7 @@ def test_external_links_only(
         200,
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, external_links_only=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, external_links_only=True))
     mock_urlopen.side_effect = lambda url: mock_response
 
     with caplog.at_level(DEBUG):
@@ -246,15 +246,15 @@ def test_external_links_only(
 @responses.activate
 def test_external_and_internal_links_only() -> None:
     with pytest.raises(ValueError):
-        Spider(
-            SpiderSettings(root_url=root_url, internal_links_only=True, external_links_only=True)
+        Datacrawl(
+            CrawlSettings(root_url=root_url, internal_links_only=True, external_links_only=True)
         )
 
 
-@patch.object(Spider, "crawl")
-@patch.object(Spider, "save_results")
+@patch.object(Datacrawl, "crawl")
+@patch.object(Datacrawl, "save_results")
 def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
-    spider = Spider(SpiderSettings(root_url=root_url, max_links=10))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, max_links=10))
     mock_crawl.side_effect = lambda url: spider.crawl_result.update(
         {url: {"urls": [f"{root_url}/test"]}}
     )
@@ -266,10 +266,10 @@ def test_start(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
     assert spider.crawl_result[root_url]["urls"] == [f"{root_url}/test"]
 
 
-@patch.object(Spider, "crawl")
-@patch.object(Spider, "save_results")
+@patch.object(Datacrawl, "crawl")
+@patch.object(Datacrawl, "save_results")
 def test_start_with_save_to_file(mock_save_results: MagicMock, mock_crawl: MagicMock) -> None:
-    spider = Spider(SpiderSettings(root_url=root_url, max_links=10, save_to_file="file.txt"))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, max_links=10, save_to_file="file.txt"))
     mock_crawl.side_effect = lambda url: spider.crawl_result.update(
         {url: {"urls": [f"{root_url}/test"]}}
     )
@@ -311,7 +311,7 @@ def test_respect_robots_txt(
         )
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, respect_robots_txt=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=True))
 
     with caplog.at_level(DEBUG):
         spider.start()
@@ -336,7 +336,7 @@ def test_respect_robots_txt_allowed(
         else urllib.error.URLError(f"No mock for {url}")
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, respect_robots_txt=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=True))
 
     with caplog.at_level(DEBUG):
         spider.crawl(root_url)
@@ -363,7 +363,7 @@ def test_respect_robots_txt_not_allowed(
         else urllib.error.URLError(f"No mock for {url}")
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, respect_robots_txt=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=True))
 
     with caplog.at_level(DEBUG):
         spider.crawl(root_url)
@@ -402,7 +402,7 @@ def test_respect_robots_txt_disabled(
     )
 
     with caplog.at_level(WARNING):
-        spider = Spider(SpiderSettings(root_url=root_url, respect_robots_txt=False))
+        spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=False))
 
     assert "Ignoring robots.txt files! You might be at risk of:" in caplog.text
 
@@ -439,7 +439,7 @@ def test_respect_robots_txt_crawl_delay(
         else urllib.error.URLError(f"No mock for {url}")
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, respect_robots_txt=True))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=True))
 
     with caplog.at_level(DEBUG):
         spider.crawl(root_url)
@@ -451,7 +451,7 @@ def test_respect_robots_txt_crawl_delay(
 
 def test_crawl_no_root_url() -> None:
     with pytest.raises(ValueError):
-        Spider(SpiderSettings(verbose=False))
+        Datacrawl(CrawlSettings(verbose=False))
 
 
 @patch("time.sleep")
@@ -467,7 +467,7 @@ def test_crawl_url_transient_retry(
         503,
     )
 
-    spider = Spider(SpiderSettings(root_url=root_url, respect_robots_txt=False))
+    spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=False))
 
     with caplog.at_level(ERROR):
         spider.crawl(root_url)
@@ -495,8 +495,8 @@ def test_crawl_url_transient_retry_custom_retry_amount(
         503,
     )
 
-    spider = Spider(
-        SpiderSettings(root_url=root_url, max_retry_attempts=10, respect_robots_txt=False)
+    spider = Datacrawl(
+        CrawlSettings(root_url=root_url, max_retry_attempts=10, respect_robots_txt=False)
     )
 
     with caplog.at_level(ERROR):

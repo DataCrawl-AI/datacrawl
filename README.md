@@ -28,22 +28,22 @@ pip install datacrawl
 ## Usage
 
 ```python
-from datacrawl import Spider
-from datacrawl import SpiderSettings
+from datacrawl import Datacrawl
+from datacrawl import CrawlSettings
 
-settings = SpiderSettings(
+settings = CrawlSettings(
     root_url = 'http://github.com',
     max_links = 2
 )
 
-spider = Spider(settings)
+spider = Datacrawl(settings)
 spider.start()
 
 
 # Set workers and delay (default: delay is 0.5 sec and verbose is True)
 # If you do not want delay, set delay=0
 
-settings = SpiderSettings(
+settings = CrawlSettings(
     root_url = 'https://github.com',
     max_links = 5,
     max_workers = 5,
@@ -51,7 +51,7 @@ settings = SpiderSettings(
     verbose = False
 )
 
-spider = Spider(settings)
+spider = Datacrawl(settings)
 spider.start()
 
 ```
