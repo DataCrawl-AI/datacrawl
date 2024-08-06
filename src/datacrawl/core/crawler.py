@@ -5,7 +5,7 @@ import urllib.parse
 import urllib.robotparser
 from dataclasses import dataclass, field
 from logging import DEBUG, INFO
-from typing import Any, Dict, List, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 import aiofiles
 import aiohttp
@@ -38,6 +38,7 @@ class Datacrawl:
     settings: CrawlSettings
 
     crawl_result: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    update_callback: Optional[Callable[[str, Dict[str, Dict[str, Any]]], None]] = None
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
 
@@ -112,6 +113,9 @@ class Datacrawl:
         if self.link_count < self.settings.max_links:
             self.link_count += 1
             logger.debug("Links crawled: %s", self.link_count)
+
+        if self.update_callback:
+            self.update_callback(url, self.crawl_result[url])
 
     def _should_skip_link(self, pretty_url: str, url: str) -> bool:
         if not is_valid_url(pretty_url):
