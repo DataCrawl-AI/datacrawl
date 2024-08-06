@@ -3,7 +3,6 @@
 [![Coverage badge](https://img.shields.io/badge/dynamic/json?color=brightgreen&label=coverage&query=%24.message&url=https%3A%2F%2Fraw.githubusercontent.com%2FDataCrawl-AI%2FDatacrawl%2Fpython-coverage-comment-action-data%2Fendpoint.json)](https://htmlpreview.github.io/?https://github.com/DataCrawl-AI/Datacrawl/blob/python-coverage-comment-action-data/htmlcov/index.html)
 [![Stable Version](https://img.shields.io/pypi/v/Datacrawl?label=stable)](https://pypi.org/project/Datacrawl/#history)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Download Stats](https://img.shields.io/pypi/dm/Datacrawl)](https://pypistats.org/packages/Datacrawl)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA?logo=discord&style=flat-square)](https://discord.gg/avfTZ7K2)
 
 

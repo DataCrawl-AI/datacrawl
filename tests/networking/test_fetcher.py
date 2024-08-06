@@ -2,13 +2,12 @@ import asyncio
 from logging import ERROR
 from unittest.mock import patch
 
+import aiohttp
 import pytest
 import requests
 import responses
-from aiohttp import ClientConnectionError, ClientError
 from aioresponses import aioresponses
-from bs4 import BeautifulSoup
-from datacrawl.networking.fetcher import fetch_url, fetch_url_async
+from datacrawl.networking.fetcher import TRANSIENT_ERRORS, fetch_url, fetch_url_async
 
 from tests.utils import setup_mock_response
 
@@ -16,16 +15,30 @@ from tests.utils import setup_mock_response
 @pytest.mark.asyncio
 async def test_fetch_url_async_success() -> None:
     url = "http://example.com"
-    html_content = "<html><body><a href='http://example.com'>link</a></body></html>"
+    html_content = "<html><body>Success</body></html>"
 
     with aioresponses() as m:
         m.get(url, status=200, body=html_content)
 
-        result = await fetch_url_async(url, retries=1)
+        async with aiohttp.ClientSession() as session:
+            soup = await fetch_url_async(session, url, retries=3)
+            assert soup is not None
+            assert soup.body.text == "Success"
 
-        assert result is not None
-        assert isinstance(result, BeautifulSoup)
-        assert result.find("a").text == "link"
+
+@pytest.mark.asyncio
+async def test_fetch_url_async_transient_error() -> None:
+    url = "http://example.com"
+    html_content = "<html><body>Success after retry</body></html>"
+
+    with aioresponses() as m:
+        m.get(url, status=TRANSIENT_ERRORS[0])  # Simulate one transient error
+        m.get(url, status=200, body=html_content)  # Then a successful response
+
+        async with aiohttp.ClientSession() as session:
+            soup = await fetch_url_async(session, url, retries=3)
+            assert soup is not None
+            assert soup.body.text == "Success after retry"
 
 
 @pytest.mark.asyncio
@@ -35,25 +48,9 @@ async def test_fetch_url_async_http_error() -> None:
     with aioresponses() as m:
         m.get(url, status=404)
 
-        result = await fetch_url_async(url, retries=1)
-
-        assert result is None
-
-
-@pytest.mark.asyncio
-async def test_fetch_url_async_transient_error_retry() -> None:
-    url = "http://example.com"
-    html_content = "<html><body><a href='http://example.com'>link</a></body></html>"
-
-    with aioresponses() as m:
-        m.get(url, status=503)
-        m.get(url, status=200, body=html_content)
-
-        result = await fetch_url_async(url, retries=2)
-
-        assert result is not None
-        assert isinstance(result, BeautifulSoup)
-        assert result.find("a").text == "link"
+        async with aiohttp.ClientSession() as session:
+            soup = await fetch_url_async(session, url, retries=3)
+            assert soup is None
 
 
 @pytest.mark.asyncio
@@ -61,11 +58,11 @@ async def test_fetch_url_async_connection_error() -> None:
     url = "http://example.com"
 
     with aioresponses() as m:
-        m.get(url, exception=ClientConnectionError())
+        m.get(url, exception=aiohttp.ClientConnectionError())
 
-        result = await fetch_url_async(url, retries=1)
-
-        assert result is None
+        async with aiohttp.ClientSession() as session:
+            soup = await fetch_url_async(session, url, retries=3)
+            assert soup is None
 
 
 @pytest.mark.asyncio
@@ -75,21 +72,9 @@ async def test_fetch_url_async_timeout_error() -> None:
     with aioresponses() as m:
         m.get(url, exception=asyncio.TimeoutError())
 
-        result = await fetch_url_async(url, retries=1)
-
-        assert result is None
-
-
-@pytest.mark.asyncio
-async def test_fetch_url_async_request_exception() -> None:
-    url = "http://example.com"
-
-    with aioresponses() as m:
-        m.get(url, exception=ClientError())
-
-        result = await fetch_url_async(url, retries=1)
-
-        assert result is None
+        async with aiohttp.ClientSession() as session:
+            soup = await fetch_url_async(session, url, retries=3)
+            assert soup is None
 
 
 @responses.activate

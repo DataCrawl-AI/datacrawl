@@ -40,32 +40,30 @@ def fetch_url(url: str, retries: int, attempts: int = 0) -> Optional[BeautifulSo
     return None
 
 
-async def fetch_url_async(url: str, retries: int, attempts: int = 0) -> Optional[BeautifulSoup]:
-    async with aiohttp.ClientSession() as session:
+async def fetch_url_async(session: aiohttp.ClientSession, url: str, retries: int) -> BeautifulSoup:
+    attempts = 0
+    while attempts <= retries:
         try:
             async with session.get(url, timeout=10) as response:
-                if response.status in TRANSIENT_ERRORS and retries > 0:
+                if response.status in TRANSIENT_ERRORS:
                     logger.error(
                         "Transient HTTP error occurred: %s. Retrying...",
                         response.status,
                     )
-                    await asyncio.sleep(attempts + 1)
-                    return await fetch_url_async(url, retries - 1, attempts + 1)
-
+                    attempts += 1
+                    await asyncio.sleep(attempts)
+                    continue
                 response.raise_for_status()
                 data = await response.text()
                 return BeautifulSoup(data, "lxml")
         except aiohttp.ClientResponseError as http_err:
-            if response.status in TRANSIENT_ERRORS and retries > 0:
-                logger.error("Transient HTTP error occurred: %s. Retrying...", http_err)
-                await asyncio.sleep(attempts + 1)
-                return await fetch_url_async(url, retries - 1, attempts + 1)
             logger.error("HTTP error occurred: %s", http_err)
-            return None
         except aiohttp.ClientConnectionError as conn_err:
             logger.error("Connection error occurred: %s", conn_err)
         except asyncio.TimeoutError as timeout_err:
             logger.error("Timeout error occurred: %s", timeout_err)
         except aiohttp.ClientError as req_err:
             logger.error("Request error occurred: %s", req_err)
-        return None
+        attempts += 1
+        await asyncio.sleep(attempts)
+    return None

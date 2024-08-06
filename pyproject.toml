@@ -25,6 +25,8 @@ requests = "^2.32.3"
 aiohttp = "^3.10.0"
 types-requests = "^2.32.0.20240712"
 types-setuptools = "^71.1.0.20240726"
+pytest-asyncio = "^0.23.8"
+aioresponses = "^0.7.6"
 
 [tool.poetry.group.dev.dependencies]
 responses = "^0.13.4"
