@@ -178,14 +178,18 @@ class Datacrawl:
             await self.crawl(session, self.settings.root_url)
 
             while self.link_count < self.settings.max_links and self.crawl_set:
-                url = self.crawl_set.pop()  # Pop the URL from crawl_set
-                tasks = [self.crawl(session, url)]
-                await asyncio.gather(*tasks)  # Use asyncio.gather to run the tasks
+                tasks: List[asyncio.Task] = []
+
+                while self.crawl_set and len(tasks) < self.settings.max_workers:
+                    url = self.crawl_set.pop()
+                    tasks.append(asyncio.create_task(self.crawl(session, url)))
+
+                await asyncio.gather(*tasks)
 
                 await asyncio.sleep(self.settings.delay)
 
-        if self.settings.save_to_file:
-            await self.save_results()
+            if self.settings.save_to_file:
+                await self.save_results()
 
-        logger.debug("Exiting....")
-        return self.crawl_result
+            logger.debug("Exiting....")
+            return self.crawl_result

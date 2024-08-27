@@ -28,6 +28,8 @@ def crawler(crawl_settings: CrawlSettings) -> Datacrawl:
 
 @pytest.mark.asyncio
 async def test_crawl(crawler: Datacrawl) -> None:
+    crawler.settings.respect_robots_txt = False
+
     with aioresponses() as m:
         m.get(
             root_url,
