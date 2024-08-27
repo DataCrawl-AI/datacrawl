@@ -38,7 +38,10 @@ class Datacrawl:
     settings: CrawlSettings
 
     crawl_result: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    update_callback: Optional[Callable[[str, Dict[str, Dict[str, Any]]], None]] = None
+    update_callback: Optional[Callable[[str, Dict[str, Dict[str, Any]], Optional[str]], None]] = (
+        None
+    )
+    job_id: str = ""
     crawl_set: Set[str] = field(default_factory=set)
     link_count: int = 0
 
@@ -115,7 +118,7 @@ class Datacrawl:
             logger.debug("Links crawled: %s", self.link_count)
 
         if self.update_callback:
-            self.update_callback(url, self.crawl_result[url])
+            self.update_callback(url, self.crawl_result[url], self.job_id)
 
     def _should_skip_link(self, pretty_url: str, url: str) -> bool:
         if not is_valid_url(pretty_url):
@@ -175,14 +178,11 @@ class Datacrawl:
             await self.crawl(session, self.settings.root_url)
 
             while self.link_count < self.settings.max_links and self.crawl_set:
-                tasks = [
-                    self.crawl(session, url)
-                    for url in list(self.crawl_set)[: self.settings.max_workers]
-                ]
+                url = self.crawl_set.pop()  # Pop the URL from crawl_set
+                tasks = [self.crawl(session, url)]
+                await asyncio.gather(*tasks)  # Use asyncio.gather to run the tasks
 
-                for task in asyncio.as_completed(tasks):
-                    await task
-                    await asyncio.sleep(self.settings.delay)
+                await asyncio.sleep(self.settings.delay)
 
         if self.settings.save_to_file:
             await self.save_results()

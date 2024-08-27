@@ -1,3 +1,4 @@
+import aiohttp
 import pytest
 from aioresponses import aioresponses
 from datacrawl.core.crawl_settings import CrawlSettings
@@ -50,5 +51,5 @@ async def test_crawl_invalid_url(crawler: Datacrawl) -> None:
     with aioresponses() as m:
         m.get("http://invalid-url", status=404)
 
-        await crawler.crawl(None, "http://invalid-url")
+        await crawler.crawl(aiohttp.ClientSession(), "http://invalid-url")
         assert "http://invalid-url" not in crawler.crawl_result

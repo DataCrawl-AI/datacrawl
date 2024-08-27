@@ -4,6 +4,7 @@ from typing import Optional
 
 import aiohttp
 import requests
+from aiohttp import ClientSession, ClientTimeout
 from bs4 import BeautifulSoup
 
 from datacrawl.logger import get_logger
@@ -40,11 +41,12 @@ def fetch_url(url: str, retries: int, attempts: int = 0) -> Optional[BeautifulSo
     return None
 
 
-async def fetch_url_async(session: aiohttp.ClientSession, url: str, retries: int) -> BeautifulSoup:
+async def fetch_url_async(session: ClientSession, url: str, retries: int) -> BeautifulSoup:
     attempts = 0
     while attempts <= retries:
         try:
-            async with session.get(url, timeout=10) as response:
+            timeout = ClientTimeout(total=10)
+            async with session.get(url, timeout=timeout) as response:
                 if response.status in TRANSIENT_ERRORS:
                     logger.error(
                         "Transient HTTP error occurred: %s. Retrying...",
@@ -64,6 +66,8 @@ async def fetch_url_async(session: aiohttp.ClientSession, url: str, retries: int
             logger.error("Timeout error occurred: %s", timeout_err)
         except aiohttp.ClientError as req_err:
             logger.error("Request error occurred: %s", req_err)
+        except Exception as err:
+            logger.error("An unexpected error occurred: %s", err)
         attempts += 1
         await asyncio.sleep(attempts)
     return None

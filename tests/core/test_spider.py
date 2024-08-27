@@ -467,7 +467,9 @@ def test_crawl_url_transient_retry(
         503,
     )
 
-    spider = Datacrawl(CrawlSettings(root_url=root_url, respect_robots_txt=False))
+    spider = Datacrawl(
+        CrawlSettings(root_url=root_url, respect_robots_txt=False, max_retry_attempts=5)
+    )
 
     with caplog.at_level(ERROR):
         spider.crawl(root_url)

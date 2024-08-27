@@ -52,7 +52,7 @@ class DataCrawlSettings:
     internal_links_only: bool = False
     external_links_only: bool = False
     respect_robots_txt: bool = True
-    max_retry_attempts: int = 5
+    max_retry_attempts: int = 2
 
 
 @dataclass
